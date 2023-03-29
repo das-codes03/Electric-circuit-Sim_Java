@@ -19,7 +19,11 @@ import uiPackage.RenderingCanvas.BiHashMap.MapBox;
 
 public class ScalableImage extends ICanvasDrawable {
 	private static final long serialVersionUID = -4008080849860554001L;
-
+	private static final int priority = 2;
+	@Override
+	public int getPriority() {
+		return priority;
+	}
 	private static Map<String, BufferedImage> sharedImageMemory = new HashMap<>();
 	private Point lastClickedLocalSpace;
 	/** Image source. */
@@ -99,7 +103,7 @@ public class ScalableImage extends ICanvasDrawable {
 		gx.translate(bounds.getCenterX() - getWidth() / 2.0, bounds.getCenterY() - getHeight() / 2.0);
 		gx.rotate(Math.toRadians(rotation), getWidth() / 2.0, getHeight() / 2.0);
 
-		if (!gx.drawImage(rawImage, 0, 0, getWidth(), getHeight(), canvas)) {
+		if (!gx.drawImage(rawImage, 0, 0, getWidth(), getHeight(),Color.red, canvas)) {
 			System.out.println("NOT DRAWN!");
 		}
 //		 gx.setStroke(new BasicStroke((float) (canvas.scaleX*dimensions.width), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));

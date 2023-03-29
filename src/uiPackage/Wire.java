@@ -19,6 +19,7 @@ public class Wire extends ICanvasDrawable {
 	 * 
 	 */
 	private static final long serialVersionUID = -4130602527644480994L;
+	private static final int priority = 1;
 	private Vector<NodeUI> nodes;
 
 	public double wireThickness = 5;
@@ -53,13 +54,13 @@ public class Wire extends ICanvasDrawable {
 			NodeUI nextN = nodes.get(i + 1);
 			
 			//translate to current node
-			at.translate(currN.localPosition.x, currN.localPosition.y);
+			at.translate(currN.getX(), currN.getY());
 			
 			//get length of current segment
-			var len = Point.distance(currN.localPosition.x, currN.localPosition.y, nextN.localPosition.x, nextN.localPosition.y);
+			var len = Point.distance(currN.getX(), currN.getY(), nextN.getX(), nextN.getY());
 			
 			//get rotation of current segment
-			var rot = Math.atan2(nextN.localPosition.y -currN.localPosition.y, nextN.localPosition.x -currN.localPosition.x);
+			var rot = Math.atan2(nextN.getY() -currN.getY(), nextN.getX() -currN.getX());
 			at.rotate(rot);
 			
 			//translate to adjust for wire width
@@ -86,7 +87,7 @@ public class Wire extends ICanvasDrawable {
 			gx.setColor(Color.red);
 			for (var k : gridLocations) {
 				
-				gx.draw(k.boxRect);
+				gx.draw(k.getBoxRect());
 			}
 		}
 //		for (var r : rects) {
@@ -95,8 +96,8 @@ public class Wire extends ICanvasDrawable {
 		 gx.setStroke(new BasicStroke((float) (canvas.scaleX*wireThickness), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		 gx.setColor(Color.CYAN);
 		for(int i = 0; i < nodes.size()-1; ++i) {
-			var currNPos = nodes.get(i).localPosition;
-			var nextNPos = nodes.get(i+1).localPosition; 
+			var currNPos = nodes.get(i).getLocation();
+			var nextNPos = nodes.get(i+1).getLocation(); 
 			gx.drawLine(currNPos.x, currNPos.y, nextNPos.x, nextNPos.y);
 		}
 gx.dispose();
@@ -144,6 +145,11 @@ gx.dispose();
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public int getPriority() {
+		return priority;
 	}
 
 

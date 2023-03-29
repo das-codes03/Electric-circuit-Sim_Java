@@ -18,7 +18,8 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 	abstract Rectangle getTransformedBounds();
 	protected Vector<MapBox> gridLocations;
 	protected Vector<Shape> regions;
-
+	
+	public abstract int getPriority();
 	public RenderingCanvas canvas;
 	public abstract void update(Graphics g);
 
@@ -29,21 +30,5 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 	}
-	public int compareTo(ICanvasDrawable o2) {
-		// TODO Auto-generated method stub
-		if (getLayer() < o2.getLayer())
-			return -1;
-		if (getLayer() > o2.getLayer())
-			return 1;
-		return 0;
-	}
-	private int layer;
-	public int getLayer() {
-		return layer;
-	}
-	void setLayer(int layer){
-		this.layer = layer;
-	}
-
 
 }

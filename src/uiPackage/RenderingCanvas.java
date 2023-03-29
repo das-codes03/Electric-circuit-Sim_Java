@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -41,50 +42,29 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	currentMode mode;
 
 	/** Size of each box in component grid. */
-	private int boxsize = 100;
+	private int boxSize = 100;
 	double quality = 1;
 	/** Component grid divisions. */
 	public BiHashMap componentGrid;
 
-	/** List of components. */
-	SortedSet<ICanvasDrawable> components = new TreeSet<>(new Comparator<ICanvasDrawable>() {
-		@Override
-		public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-			// Define comparing logic here
-			return o1.compareTo(o2);
-		}
-	});
-	// public Vector<ICanvasDrawable> wires = new Vector<>();
-
 	/** Add component in viewport. */
 	public void addComponent(ScalableImage comp) {
-
 		componentGrid.store(comp);
-
 	}
 
 	/** Bring this component to top. */
 	public void bringToFront(ICanvasDrawable comp) {
-
-		var itr = components.iterator();
-		while (itr.hasNext()) {
-			var c = itr.next();
-			if (c == comp) {
-				itr.remove();
-				c.setLayer(-1);
-				break;
+		for (var g : comp.gridLocations) {
+			int i = g.components.indexOf(comp);
+			// shifting component to front
+			for (; i > 0; i--) {
+				var curr = g.components.get(i);
+				var prev = g.components.get(i - 1);
+//				if(prev.getPriority() < curr.getPriority())
+//					return;
+				g.components.set(i, prev);
+				g.components.set(i - 1, curr);
 			}
-			if (!itr.hasNext())
-				throw new NoSuchElementException(); // no component found
-		}
-		// re-layer the components
-		components.add(comp);
-		var newItr = components.iterator();
-		int l = 0;
-		while (newItr.hasNext()) {
-			var c = newItr.next();
-			c.setLayer(l);
-			l++;
 		}
 
 	}
@@ -100,78 +80,55 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	/** Data structure to store components in grid. */
 	public class BiHashMap {
 		class MapBox {
-			int x, y;
-
 			public MapBox(int x, int y) {
 				super();
-				this.x = x;
-				this.y = y;
-				this.components = Collections.synchronizedSortedSet(new TreeSet<>(new Comparator<ICanvasDrawable>() {
-					@Override
-					public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-						// Define comparing logic here
-						return o1.compareTo(o2);
-					}
-				}));
-
-//				this.nodes = Collections.synchronizedSortedSet(new TreeSet<>());
-//				this.wires = Collections.synchronizedSortedSet(new TreeSet<>());
+				this.components = new ArrayList<>();
 				boxRect = generateRect(x, y);
 			}
-
-			Rectangle boxRect;
-			SortedSet<ICanvasDrawable> components;
+			public Rectangle getBoxRect() {
+				return boxRect;
+			}
+			private Rectangle boxRect;
+			private ArrayList<ICanvasDrawable> components;
 		}
 
-		public Rectangle generateRect(int xi, int yi) {
+		private Rectangle generateRect(int xi, int yi) {
 			var rect = new Rectangle(xi * BiHashMap.this.boxSize, yi * BiHashMap.this.boxSize, BiHashMap.this.boxSize,
 					BiHashMap.this.boxSize);
 			return rect;
 		}
 
-		public BiHashMap(int boxSize) { // constructor
-			this.boxSize = boxsize;
+		public BiHashMap(int b) { // constructor
+			this.boxSize = b;
 			mMap = new HashMap<Integer, HashMap<Integer, MapBox>>();
 		}
 
 		private final int boxSize;
 		private final HashMap<Integer, HashMap<Integer, MapBox>> mMap;
 
-		private MapBox get(int x, int y) {
-
+		private MapBox getBox(int x, int y) {
 			var temp = mMap.get(x);
 			if (temp != null)
 				return temp.get(y);
 			else
 				return null;
-
 		}
 
 		public void remove(ICanvasDrawable comp) {
-//			for (var b : comp.gridLocations) {
-//				if (comp instanceof ScalableImage)
-//					b.components.remove(comp);
-//				else if (comp instanceof Wire)
-//					b.wires.remove(comp);
-//			}
-//			var b = getBox(comp.coordinates);
-//			var x = get(b.x, b.y);
-
 			try {
-				for (var b : comp.gridLocations)
-
+				for (var b : comp.gridLocations) {
 					b.components.remove(comp);
-
+					// TODO: delete entire box if components is empty
+				}
 			} catch (NullPointerException e) {
 				System.err.println("Component not found!");
 				e.printStackTrace();
 			}
-
 		}
 
 		private MapBox set(int x, int y, ICanvasDrawable comp) {
 			MapBox box;
-			if ((box = get(x, y)) == null) {
+			if ((box = getBox(x, y)) == null) {
 				HashMap<Integer, MapBox> m = null;
 				if (!mMap.containsKey(x)) {
 					m = mMap.put(x, new HashMap<Integer, MapBox>());
@@ -179,11 +136,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				m = mMap.get(x);
 				m.put(y, new MapBox(x, y));
 				box = m.get(y);
-
 			}
-
 			box.components.add(comp);
-
 			return box;
 		}
 
@@ -208,7 +162,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			}
 		}
 
-		Set<Point> getOverlappingBoxes(Shape sh) {
+		private Set<Point> getOverlappingBoxes(Shape sh) {
 			Set<Point> o = new HashSet<>();
 			var bn = sh.getBounds();
 			Point b = getBox(new Point((int) Math.round(bn.getCenterX()), (int) Math.round(bn.getCenterY())));
@@ -223,19 +177,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		}
 
 		public void store(ICanvasDrawable comp) {
-			
+
 			for (var b : comp.gridLocations) {
 				b.components.remove(comp);
 			}
-
-			if (components.isEmpty())
-				comp.setLayer(-1);
-			else
-				comp.setLayer(components.first().getLayer() - 1);
-			
-			components.add(comp);
-			bringToFront(comp);
-
 			comp.gridLocations.clear();
 			for (var x : comp.regions) {
 				var bs = getOverlappingBoxes(x);
@@ -243,9 +188,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 					comp.gridLocations.add(set(p.x, p.y, comp));
 				}
 			}
+			bringToFront(comp);
 		}
 
-		public SortedSet<ICanvasDrawable> getComponentsInRect(Point p, Dimension dimension) {
+		public ArrayList<ICanvasDrawable> getComponentsInRect(Point p, Dimension dimension) {
 			var b1 = getBox(p);
 			var b2 = getBox(new Point((int) (p.x + dimension.getWidth()), (int) (p.y + dimension.getHeight())));
 			int x1 = b1.x - 1;
@@ -256,17 +202,18 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 			int y2 = (b2.y + 1);
 
-			SortedSet<ICanvasDrawable> temp = new TreeSet<ICanvasDrawable>(new Comparator<ICanvasDrawable>() {
-				@Override
-				public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-					// Define comparing logic here
-					return o1.compareTo(o2);
-				}
-			});
+//			SortedSet<ICanvasDrawable> temp = new TreeSet<ICanvasDrawable>(new Comparator<ICanvasDrawable>() {
+//				@Override
+//				public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
+//					// Define comparing logic here
+//					return o1.compareTo(o2);
+//				}
+//			});
+			ArrayList<ICanvasDrawable> temp = new ArrayList<>();
 			Rectangle rect = new Rectangle(p, dimension);
 			for (int i = x1; i <= x2; ++i) {
 				for (int j = y1; j <= y2; ++j) {
-					var s = get(i, j);
+					var s = getBox(i, j);
 					if (s == null)
 						continue;
 
@@ -279,7 +226,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 								for (var bnd : c.regions) {
 									if (bnd.intersects(rect)) {
 										temp.add(c);
-										break;
+
 									}
 								}
 
@@ -294,7 +241,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		public ICanvasDrawable getTop(Point localPoint) {
 			var b = getBox(localPoint);
 			ICanvasDrawable found = null;
-			var s = get(b.x, b.y);
+			var s = getBox(b.x, b.y);
 			if (s == null)
 				return null;
 			for (var c : s.components) {
@@ -356,7 +303,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		this.addMouseWheelListener(this);
 		this.addMouseMotionListener(this);
 		this.addMouseListener(this);
-		this.componentGrid = new BiHashMap(boxsize);
+		this.componentGrid = new BiHashMap(boxSize);
 	}
 
 	Color gridColor = new Color(0, 50, 0);
@@ -412,25 +359,11 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		var inRect = componentGrid.getComponentsInRect(p1, dim).toArray();
 
-		// System.out.println("Total rendered: " + inRect.size());
-//		synchronized (components) {
-//			for (var v : components) {
-//				v.update(renderContext);
-//				
-//			}
-//		}
-
 		for (int i = inRect.length - 1; i >= 0; --i) {
 			// System.out.println("layer: " + c.layer);
 			var c = inRect[i];
 			((ICanvasDrawable) c).update(renderContext);
 		}
-
-//		for (var w : wires) {
-//			w.update(renderContext);
-//		}
-
-		// System.out.println("Now at top: " + inRect.get(0).hashCode());
 
 		// FOR DEBUGGING PURPOSE ///
 //		File outputfile = new File("image.png");
@@ -441,7 +374,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 //			e.printStackTrace();
 //		}
 
-		/////////////////////////////////////
+
 
 		if (!g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this)) {
 			System.out.println("Not drawn");
@@ -475,8 +408,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		var t2 = System.nanoTime();
 		System.out.println("Time taken click: " + (t2 - t1) / 1000000000d);
-		if (s != null)
-			System.out.println(s.getLayer());
+
 		Render();
 	}
 
