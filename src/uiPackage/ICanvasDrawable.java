@@ -20,9 +20,27 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 	protected Vector<Shape> regions;
 	
 	public abstract int getPriority();
+	public long layer;
 	public RenderingCanvas canvas;
 	public abstract void update(Graphics g);
 
+
+	public int compareTo(ICanvasDrawable obj2) {
+		if(this.getPriority() < obj2.getPriority()) {
+			return -1;
+		}
+		if(this.getPriority() > obj2.getPriority()) {
+			return 1;
+		}
+		if(this.layer < obj2.layer) {
+			return -1;
+		}
+		if(this.layer > obj2.layer) {
+			return 1;
+		}
+		return 0;
+	}
+	
 	public ICanvasDrawable(RenderingCanvas canvas) {
 		this.canvas = canvas;
 		this.gridLocations = new Vector<>();
