@@ -12,166 +12,109 @@ import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.Vector;
-
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
 
 	enum currentMode {
-		MOVE_CANVAS, DRAG_COMPONENT, NONE
+		MOVE_CANVAS, DRAG_COMPONENT, MAKE_WIRE, NONE
 	}
 
 	/** Here screen will be stored. */
 	private BufferedImage renderImage;
 
+	/** Transformation of the camera. */
+	AffineTransform camTransform;
 	/** Last clicked point in local space. */
 	Point lastClicked;
 	currentMode mode;
-
+	ICanvasDrawable currSelected = null;
+	// minimum layer till now
+	private long minLayer;
 	/** Size of each box in component grid. */
-	private int boxsize = 100;
+	private int boxSize = 100;
 	double quality = 1;
 	/** Component grid divisions. */
-	public BiHashMap componentGrid;
-
-	/** List of components. */
-	SortedSet<ICanvasDrawable> components = new TreeSet<>(new Comparator<ICanvasDrawable>() {
-		@Override
-		public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-			// Define comparing logic here
-			return o1.compareTo(o2);
-		}
-	});
-	// public Vector<ICanvasDrawable> wires = new Vector<>();
-
-	/** Add component in viewport. */
-	public void addComponent(ScalableImage comp) {
-
-		componentGrid.store(comp);
-
-	}
+	public BiHashMap objectsMap;
 
 	/** Bring this component to top. */
 	public void bringToFront(ICanvasDrawable comp) {
-
-		var itr = components.iterator();
-		while (itr.hasNext()) {
-			var c = itr.next();
-			if (c == comp) {
-				itr.remove();
-				c.setLayer(-1);
-				break;
-			}
-			if (!itr.hasNext())
-				throw new NoSuchElementException(); // no component found
-		}
-		// re-layer the components
-		components.add(comp);
-		var newItr = components.iterator();
-		int l = 0;
-		while (newItr.hasNext()) {
-			var c = newItr.next();
-			c.setLayer(l);
-			l++;
-		}
-
+		comp.layer = minLayer - 1;
+		minLayer--;
 	}
 
 	/** Transform screenspace point to renderspace */
 	public Point screenToLocalPoint(Point worldPoint) {
 		Point local = new Point();
-		local.x = (int) ((worldPoint.x - getLocationOnScreen().x + offsetX) / scaleX);
-		local.y = (int) ((worldPoint.y - getLocationOnScreen().y + offsetY) / scaleY);
+		local.x = (int) ((worldPoint.x - getLocationOnScreen().x) / camTransform.getScaleX()
+				+ camTransform.getTranslateX());
+		local.y = (int) ((worldPoint.y - getLocationOnScreen().y) / camTransform.getScaleY()
+				+ camTransform.getTranslateY());
 		return local;
 	}
 
 	/** Data structure to store components in grid. */
-	public class BiHashMap {
+	class BiHashMap {
 		class MapBox {
-			int x, y;
-
 			public MapBox(int x, int y) {
-				super();
-				this.x = x;
-				this.y = y;
-				this.components = Collections.synchronizedSortedSet(new TreeSet<>(new Comparator<ICanvasDrawable>() {
-					@Override
-					public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-						// Define comparing logic here
-						return o1.compareTo(o2);
-					}
-				}));
-
-//				this.nodes = Collections.synchronizedSortedSet(new TreeSet<>());
-//				this.wires = Collections.synchronizedSortedSet(new TreeSet<>());
+				this.components = new ArrayList<>();
 				boxRect = generateRect(x, y);
 			}
 
-			Rectangle boxRect;
-			SortedSet<ICanvasDrawable> components;
+			public Rectangle getBoxRect() {
+				return boxRect;
+			}
+
+			private final Rectangle boxRect;
+			private final ArrayList<ICanvasDrawable> components;
 		}
 
-		public Rectangle generateRect(int xi, int yi) {
+		private Rectangle generateRect(int xi, int yi) {
 			var rect = new Rectangle(xi * BiHashMap.this.boxSize, yi * BiHashMap.this.boxSize, BiHashMap.this.boxSize,
 					BiHashMap.this.boxSize);
 			return rect;
 		}
 
-		public BiHashMap(int boxSize) { // constructor
-			this.boxSize = boxsize;
+		public BiHashMap(int b) { // constructor
+			this.boxSize = b;
 			mMap = new HashMap<Integer, HashMap<Integer, MapBox>>();
 		}
 
 		private final int boxSize;
 		private final HashMap<Integer, HashMap<Integer, MapBox>> mMap;
 
-		private MapBox get(int x, int y) {
-
+		private MapBox getBox(int x, int y) {
 			var temp = mMap.get(x);
 			if (temp != null)
 				return temp.get(y);
 			else
 				return null;
-
 		}
 
 		public void remove(ICanvasDrawable comp) {
-//			for (var b : comp.gridLocations) {
-//				if (comp instanceof ScalableImage)
-//					b.components.remove(comp);
-//				else if (comp instanceof Wire)
-//					b.wires.remove(comp);
-//			}
-//			var b = getBox(comp.coordinates);
-//			var x = get(b.x, b.y);
-
 			try {
-				for (var b : comp.gridLocations)
-
+				for (var b : comp.gridLocations) {
 					b.components.remove(comp);
-
+					// TODO: delete entire box if components is empty
+				}
 			} catch (NullPointerException e) {
 				System.err.println("Component not found!");
 				e.printStackTrace();
 			}
-
 		}
 
 		private MapBox set(int x, int y, ICanvasDrawable comp) {
 			MapBox box;
-			if ((box = get(x, y)) == null) {
+			if ((box = getBox(x, y)) == null) {
 				HashMap<Integer, MapBox> m = null;
 				if (!mMap.containsKey(x)) {
 					m = mMap.put(x, new HashMap<Integer, MapBox>());
@@ -179,11 +122,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				m = mMap.get(x);
 				m.put(y, new MapBox(x, y));
 				box = m.get(y);
-
 			}
-
 			box.components.add(comp);
-
 			return box;
 		}
 
@@ -208,46 +148,38 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			}
 		}
 
-		Set<Point> getOverlappingBoxes(Shape sh) {
+		private Set<Point> getOverlappingBoxCoordinates(Shape sh) {
 			Set<Point> o = new HashSet<>();
 			var bn = sh.getBounds();
-			Point b = getBox(new Point((int) Math.round(bn.getCenterX()), (int) Math.round(bn.getCenterY())));
+			Point b = getBoxCoordinate(new Point((int) Math.round(bn.getCenterX()), (int) Math.round(bn.getCenterY())));
 			recurFind(sh, b, o, true, true, true, true);
 			return o;
 		}
 
-		private Point getBox(Point coordinate) {
-			int x = coordinate.x / boxSize - (coordinate.x < 0 ? 1 : 0);
-			int y = coordinate.y / boxSize - (coordinate.y < 0 ? 1 : 0);
+		private Point getBoxCoordinate(Point locationOnCanvas) {
+			int x = locationOnCanvas.x / boxSize - (locationOnCanvas.x < 0 ? 1 : 0);
+			int y = locationOnCanvas.y / boxSize - (locationOnCanvas.y < 0 ? 1 : 0);
 			return new Point(x, y);
 		}
 
 		public void store(ICanvasDrawable comp) {
-			
 			for (var b : comp.gridLocations) {
 				b.components.remove(comp);
 			}
-
-			if (components.isEmpty())
-				comp.setLayer(-1);
-			else
-				comp.setLayer(components.first().getLayer() - 1);
-			
-			components.add(comp);
-			bringToFront(comp);
-
 			comp.gridLocations.clear();
 			for (var x : comp.regions) {
-				var bs = getOverlappingBoxes(x);
+				var bs = getOverlappingBoxCoordinates(x);
 				for (var p : bs) {
 					comp.gridLocations.add(set(p.x, p.y, comp));
 				}
 			}
+			bringToFront(comp);
 		}
 
-		public SortedSet<ICanvasDrawable> getComponentsInRect(Point p, Dimension dimension) {
-			var b1 = getBox(p);
-			var b2 = getBox(new Point((int) (p.x + dimension.getWidth()), (int) (p.y + dimension.getHeight())));
+		public ArrayList<ICanvasDrawable> getComponentsInRect(Point p, Dimension dimension) {
+			var b1 = getBoxCoordinate(p);
+			var b2 = getBoxCoordinate(
+					new Point((int) (p.x + dimension.getWidth()), (int) (p.y + dimension.getHeight())));
 			int x1 = b1.x - 1;
 
 			int y1 = b1.y - 1;
@@ -256,20 +188,13 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 			int y2 = (b2.y + 1);
 
-			SortedSet<ICanvasDrawable> temp = new TreeSet<ICanvasDrawable>(new Comparator<ICanvasDrawable>() {
-				@Override
-				public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-					// Define comparing logic here
-					return o1.compareTo(o2);
-				}
-			});
+			ArrayList<ICanvasDrawable> temp = new ArrayList<>();
 			Rectangle rect = new Rectangle(p, dimension);
 			for (int i = x1; i <= x2; ++i) {
 				for (int j = y1; j <= y2; ++j) {
-					var s = get(i, j);
+					var s = getBox(i, j);
 					if (s == null)
 						continue;
-
 					synchronized (s.components) {
 						if (x1 != i && x2 != i && y1 != j && y2 != j) // non corner box
 							temp.addAll(s.components);
@@ -279,22 +204,26 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 								for (var bnd : c.regions) {
 									if (bnd.intersects(rect)) {
 										temp.add(c);
-										break;
+
 									}
 								}
-
 							}
 					}
-
 				}
 			}
+			temp.sort(new Comparator<ICanvasDrawable>() {
+				@Override
+				public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
+					return o1.compareTo(o2);
+				}
+			});
 			return temp;
 		}
 
 		public ICanvasDrawable getTop(Point localPoint) {
-			var b = getBox(localPoint);
+			var b = getBoxCoordinate(localPoint);
 			ICanvasDrawable found = null;
-			var s = get(b.x, b.y);
+			var s = getBox(b.x, b.y);
 			if (s == null)
 				return null;
 			for (var c : s.components) {
@@ -302,17 +231,14 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 					if (bnd.contains(localPoint))
 						if (found == null) {
 							found = c;
-							break;
+						} else if (found.compareTo(c) == 1) {
+							found = c;
 						}
 				}
 			}
-			if (found != null)
-				bringToFront(found);
 			return found;
 		}
-
 	}
-	// hashmap of all references
 
 	public boolean reset(double quality) {
 		try {
@@ -326,23 +252,16 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	public void zoom(Point focus, double targetZoom) {
 //TODO: ZOOM yet to implement
-		Point center = getLocationOnScreen();
-		center.x += getWidth() / 2;
-		center.y += getHeight() / 2;
+		Point center = screenToLocalPoint(focus);
 
-		offsetX -= (int) Math.round((focus.x - center.x) - ((focus.x - center.x) * targetZoom / scaleX));
-		offsetY -= (int) Math.round((focus.y - center.y) - ((focus.y - center.y) * targetZoom / scaleY));
+		var relX = (center.x - camTransform.getTranslateX()) / camTransform.getScaleX();
+		var relY = (center.y - camTransform.getTranslateY()) / camTransform.getScaleY();
+//		var ratio = camTransform.getScaleX()
+		camTransform.translate(-relX, -relY);
+		camTransform.scale(targetZoom, targetZoom);
+		camTransform.translate(relX, relY);
 
-//		var scalechange = targetZoom / scaleX; //
-		scaleX = scaleY = targetZoom;
-//		var xRatio = (focus.x-center.x) / (double) getWidth();
-////		var offsetBase = (scalechange-1) * getWidth();
-//		offsetX -= offsetX * scalechange * xRatio;
-//		// offsetY -= (int)-((-focus.y+center.y) * scalechange);
-//		offsetX = (int) (offsetX - sign  * (center.x- focus.x));
-//		offsetY = (int) (offsetY - sign  * (center.y - focus.y));
 		Render();
-		// System.out.println("Offset x: " + offsetX + " Offset y: " + offsetY);
 	}
 
 	public void Render() {
@@ -350,47 +269,47 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	}
 
 	public RenderingCanvas() {
-
+		this.camTransform = new AffineTransform();
+		this.minLayer = 0;
 		this.setDoubleBuffered(true);
 		renderImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
 		this.addMouseWheelListener(this);
 		this.addMouseMotionListener(this);
 		this.addMouseListener(this);
-		this.componentGrid = new BiHashMap(boxsize);
+		this.objectsMap = new BiHashMap(boxSize);
 	}
 
 	Color gridColor = new Color(0, 50, 0);
 	Color secondaryGridColor = new Color(00, 30, 00);
-	public double scaleX = 1;
-	public double scaleY = 1;
-	public int offsetX = 0;
-	public int offsetY = 0;
+//	public double scaleX = 1;
+//	public double scaleY = 1;
+//	public int offsetX = 0;
+//	public int offsetY = 0;
 	private static final long serialVersionUID = 6803922477054275835L;
 
 	private void drawGrid(Graphics2D g) {
 		int basegap = 100;
-		int logzoom = (int) (Math.log(scaleX) / Math.log(2));
+		var scale = camTransform.getScaleX();
+		var offX = camTransform.getTranslateX();
+		var offY = camTransform.getTranslateY();
+		int logzoom = (int) (Math.log(scale) / Math.log(2));
 		int gap = (int) (basegap / Math.pow(2, logzoom));
 
 		g.setColor(gridColor);
 
-		for (double i = (-gap * scaleX); i < this.getWidth() + (gap * scaleX); i += gap * scaleX) {
-			double shift = -offsetX % (gap * scaleX);
-			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
+		for (double i = (-offX % gap) * scale; i < getWidth() / scale; i += gap * scale) {
+			g.drawLine((int) Math.round(i), 0, (int) Math.round(i), this.getHeight());
 		}
-		for (double i = (-gap * scaleY); i < this.getHeight() + (gap * scaleX); i += gap * scaleY) {
-			double shift = -offsetY % (gap * scaleY);
-			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
+		for (double i = (-offY % gap) * scale; i < getHeight() / scale; i += gap * scale) {
+			g.drawLine(0, (int) Math.round(i), this.getWidth(), (int) Math.round(i));
 		}
-
 		g.setColor(secondaryGridColor);
-		for (double i = (-gap * scaleX); i < this.getWidth() + (gap * scaleX); i += gap * scaleX) {
-			double shift = -(offsetX) % (gap * scaleX) + (gap / 2.0 * scaleX);
-			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
+
+		for (double i = (-offX % gap + gap / 2) * scale; i < getWidth() / scale; i += gap * scale) {
+			g.drawLine((int) Math.round(i), 0, (int) Math.round(i), this.getHeight());
 		}
-		for (double i = (-gap * scaleY); i < this.getHeight() + (gap * scaleX); i += gap * scaleY) {
-			double shift = -(offsetY) % (gap * scaleY) + (gap / 2.0 * scaleY);
-			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
+		for (double i = (-offY % gap + gap / 2) * scale; i < getHeight() / scale; i += gap * scale) {
+			g.drawLine(0, (int) Math.round(i), this.getWidth(), (int) Math.round(i));
 		}
 	}
 
@@ -408,29 +327,17 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				new Point(getLocationOnScreen().x + getWidth(), getLocationOnScreen().y + getHeight()));
 		var dim = new Dimension(p2.x - p1.x, p2.y - p1.y);
 		renderContext.setColor(Color.red);
-//		renderContext.draw(new Rectangle(p1, dim));
 
-		var inRect = componentGrid.getComponentsInRect(p1, dim).toArray();
+		var inRect = objectsMap.getComponentsInRect(p1, dim).toArray();
 
-		// System.out.println("Total rendered: " + inRect.size());
-//		synchronized (components) {
-//			for (var v : components) {
-//				v.update(renderContext);
-//				
-//			}
-//		}
+		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
+		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
 
 		for (int i = inRect.length - 1; i >= 0; --i) {
 			// System.out.println("layer: " + c.layer);
 			var c = inRect[i];
 			((ICanvasDrawable) c).update(renderContext);
 		}
-
-//		for (var w : wires) {
-//			w.update(renderContext);
-//		}
-
-		// System.out.println("Now at top: " + inRect.get(0).hashCode());
 
 		// FOR DEBUGGING PURPOSE ///
 //		File outputfile = new File("image.png");
@@ -440,8 +347,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
-
-		/////////////////////////////////////
 
 		if (!g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this)) {
 			System.out.println("Not drawn");
@@ -458,6 +363,46 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+
+		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+		if (t == null) {
+			if (mode == currentMode.MAKE_WIRE) {
+				var temp = new NodeUI(this);
+				temp.setRadius(3);
+				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+				((Wire) currSelected).addNode(temp);
+				return;
+			}
+		} else if (t instanceof NodeUI) {
+			if (mode == currentMode.MAKE_WIRE) {
+				if (t == ((Wire) currSelected).nodes.lastElement()) {
+					objectsMap.remove(t);
+					var temp = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+
+					if (temp instanceof NodeUI) {
+						((Wire) currSelected).nodes.remove(t);
+						((Wire) currSelected).addNode((NodeUI) temp);
+						currSelected = null;
+						mode = currentMode.NONE;
+					} else {
+						objectsMap.store(t);
+						temp = new NodeUI(this);
+						temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+						((Wire) currSelected).addNode((NodeUI) temp);
+					}
+				}
+			} else {
+				mode = currentMode.MAKE_WIRE;
+				Wire w = new Wire(this);
+				w.addNode((NodeUI) t);
+				currSelected = w;
+				var temp = new NodeUI(this);
+				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+				w.addNode(temp);
+			}
+		}
+
+		Render();
 		// TODO Auto-generated method stub
 		// var curr = ComponentListUI.last;
 		// System.out.println("Local point: " +
@@ -469,21 +414,20 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 //				curr = curr.prevInOrder;
 //		}
 
-		System.out.println(e.getLocationOnScreen());
-		var t1 = System.nanoTime();
-		var s = componentGrid.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+//		System.out.println(e.getLocationOnScreen());
+//		var t1 = System.nanoTime();
+//		var s = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+//		System.out.println("Offset: " + camTransform.getTranslateX());
+//		var t2 = System.nanoTime();
+//		System.out.println("Time taken click: " + (t2 - t1) / 1000000000d);
 
-		var t2 = System.nanoTime();
-		System.out.println("Time taken click: " + (t2 - t1) / 1000000000d);
-		if (s != null)
-			System.out.println(s.getLayer());
-		Render();
+		// Render();
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
-		var t = componentGrid.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		if (t != null)
 			((Component) t).dispatchEvent(e);
 
@@ -494,7 +438,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
-		mode = currentMode.NONE;
+		if (mode != currentMode.MAKE_WIRE) {
+			mode = currentMode.NONE;
+			currSelected = null;
+		}
 	}
 
 	@Override
@@ -511,38 +458,47 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-
-		var t = componentGrid.getTop(screenToLocalPoint(e.getLocationOnScreen()));
-		if (t != null) {
-			t.dispatchEvent(e);
+		mouseMoved(e);
+		if (currSelected != null) {
+			currSelected.dispatchEvent(e);
 		} else {
-			System.out.println("Dragged canvas");
-			int dx = screenToLocalPoint(e.getLocationOnScreen()).x - lastClicked.x;
-			int dy = screenToLocalPoint(e.getLocationOnScreen()).y - lastClicked.y;
-			offsetX -= dx * scaleX;
-			offsetY -= dy * scaleY;
+			var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+			if (t != null && mode != currentMode.MOVE_CANVAS) {
+				t.dispatchEvent(e);
+			} else {
+				mode = currentMode.MOVE_CANVAS;
+				System.out.println("Dragged canvas");
+				int dx = screenToLocalPoint(e.getLocationOnScreen()).x - lastClicked.x;
+				int dy = screenToLocalPoint(e.getLocationOnScreen()).y - lastClicked.y;
+				camTransform.translate(-dx / camTransform.getScaleX(), -dy / camTransform.getScaleY());
+			}
+
 		}
 		lastClicked = screenToLocalPoint(e.getLocationOnScreen());
 		Render();
-
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		// TODO Auto-generated method stub
 		if (e.getWheelRotation() < 0) {
-			zoom(e.getLocationOnScreen(), scaleX * 1.01);
-
+			zoom(e.getLocationOnScreen(), 1.02);
 		}
 		if (e.getWheelRotation() > 0) {
-			zoom(e.getLocationOnScreen(), scaleX / 1.01);
-
+			zoom(e.getLocationOnScreen(), 1 / 1.02);
 		}
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
-
+		if (mode == currentMode.MAKE_WIRE) {
+			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+			Render();
+		}
+//		if (mode == currentMode.MAKE_WIRE) {
+//			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+//			Render();
+//		}
 	}
 }
