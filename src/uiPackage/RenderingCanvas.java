@@ -41,7 +41,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	// minimum layer till now
 	private long minLayer;
 	/** Size of each box in component grid. */
-	private int boxSize = 100;
+	private int boxSize = 500;
 	double quality = 1;
 	/** Component grid divisions. */
 	public BiHashMap objectsMap;
@@ -180,13 +180,13 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			var b1 = getBoxCoordinate(p);
 			var b2 = getBoxCoordinate(
 					new Point((int) (p.x + dimension.getWidth()), (int) (p.y + dimension.getHeight())));
-			int x1 = b1.x - 1;
+			int x1 = b1.x;
 
-			int y1 = b1.y - 1;
+			int y1 = b1.y;
 
-			int x2 = (b2.x + 1);
+			int x2 = (b2.x);
 
-			int y2 = (b2.y + 1);
+			int y2 = (b2.y);
 
 			ArrayList<ICanvasDrawable> temp = new ArrayList<>();
 			Rectangle rect = new Rectangle(p, dimension);
@@ -297,19 +297,23 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		g.setColor(gridColor);
 
-		for (double i = (-offX % gap) * scale; i < getWidth() / scale; i += gap * scale) {
-			g.drawLine((int) Math.round(i), 0, (int) Math.round(i), this.getHeight());
+		for (double i = -gap * scale; i < getWidth() ; i += gap * scale) {
+			var shift = (-offX % gap) * scale;
+			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = (-offY % gap) * scale; i < getHeight() / scale; i += gap * scale) {
-			g.drawLine(0, (int) Math.round(i), this.getWidth(), (int) Math.round(i));
+		for (double i = -gap * scale; i < getHeight(); i += gap * scale) {
+			var shift = (-offY % gap) * scale;
+			g.drawLine(0, (int) Math.round(i+shift), this.getWidth(), (int) Math.round(i+shift));
 		}
 		g.setColor(secondaryGridColor);
 
-		for (double i = (-offX % gap + gap / 2) * scale; i < getWidth() / scale; i += gap * scale) {
-			g.drawLine((int) Math.round(i), 0, (int) Math.round(i), this.getHeight());
+		for (double i = -gap * scale; i < getWidth() ; i += gap * scale) {
+			var shift = (-offX % gap + gap / 2) * scale;
+			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = (-offY % gap + gap / 2) * scale; i < getHeight() / scale; i += gap * scale) {
-			g.drawLine(0, (int) Math.round(i), this.getWidth(), (int) Math.round(i));
+		for (double i = -gap * scale; i < getHeight() ; i += gap * scale) {
+			var shift = (-offY % gap + gap / 2) * scale;
+			g.drawLine(0, (int) Math.round(i+shift), this.getWidth(), (int) Math.round(i+shift));
 		}
 	}
 
@@ -332,7 +336,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
 		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
-
+//		renderContext.draw(new Rectangle(p1,dim));
 		for (int i = inRect.length - 1; i >= 0; --i) {
 			// System.out.println("layer: " + c.layer);
 			var c = inRect[i];
@@ -493,7 +497,25 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 		if (mode == currentMode.MAKE_WIRE) {
+			//find if anynode under
+			var currNode = ((Wire) currSelected).nodes.lastElement();
+			var b = currNode.regions.get(0).getBounds();
+			var pt = screenToLocalPoint(e.getLocationOnScreen());
+			var contactNodes = objectsMap.getComponentsInRect(pt,b.getSize());
+			NodeUI contact = null;
+			for(var n : contactNodes) {
+				if(n instanceof NodeUI && n != currNode) {
+					contact = (NodeUI)n;
+					break;
+				}
+			}
+			if(contact == null) {
 			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+			}else {
+				((Wire) currSelected).nodes.lastElement().setLocation(contact.getLocation());
+			}
+			currSelected.getTransformedBounds();
+			objectsMap.store(currSelected);
 			Render();
 		}
 //		if (mode == currentMode.MAKE_WIRE) {

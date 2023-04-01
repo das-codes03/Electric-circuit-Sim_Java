@@ -11,7 +11,7 @@ public class SimUiManager {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		MainWindow.start(null);
+		var mainWin = new MainWindow();
 		for(int i = 0; i <10; ++i) {
 			// temp =  new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100);
 			var temp = new DeviceUI(MainWindow.renderCanvas,"/resources/transparent.png",(int)(100),(int)(100));

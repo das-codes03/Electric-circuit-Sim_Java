@@ -41,7 +41,7 @@ public class NodeUI extends ICanvasDrawable {
 		super(canvas);
 		canvas.objectsMap.store(this);
 		setLocation(p);
-		setSize((int) (5 * radius), (int) (5 * radius));
+		setSize((int) (2 * radius), (int) (2 * radius));
 	}
 
 	@Override

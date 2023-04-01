@@ -83,7 +83,9 @@ public class Wire extends ICanvasDrawable {
 
 			// reset the transform for next segment!
 			at.setToIdentity();
+			
 		}
+		System.out.println("Wire : " + nodes.size());
 		return null;
 	}
 
@@ -101,6 +103,7 @@ public class Wire extends ICanvasDrawable {
 			var nextNPos = nodes.get(i + 1).getLocation();
 			gx.drawLine(currNPos.x, currNPos.y, nextNPos.x, nextNPos.y);
 		}
+		
 		gx.dispose();
 	}
 
