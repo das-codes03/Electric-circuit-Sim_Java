@@ -125,4 +125,9 @@ public class NodeUI extends ICanvasDrawable {
 		// TODO Auto-generated method stub
 		return priority;
 	}
+	@Override
+	public void animate(Graphics g) {
+		// TODO Auto-generated method stub
+		
+	}
 }

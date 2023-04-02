@@ -153,5 +153,10 @@ public class Wire extends ICanvasDrawable {
 	public int getPriority() {
 		return priority;
 	}
+	@Override
+	public void animate(Graphics g) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

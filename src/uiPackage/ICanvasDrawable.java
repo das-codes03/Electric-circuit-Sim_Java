@@ -16,6 +16,7 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 	 */
 	private static final long serialVersionUID = 744247388132276375L;
 	abstract Rectangle getTransformedBounds();
+	final IComponentDescriptor descr;
 	protected Vector<MapBox> gridLocations;
 	protected Vector<Shape> regions;
 	
@@ -23,6 +24,7 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 	public long layer;
 	public RenderingCanvas canvas;
 	public abstract void update(Graphics g);
+	public abstract void animate(Graphics g);
 
 
 	public int compareTo(ICanvasDrawable obj2) {
@@ -41,12 +43,17 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 		return 0;
 	}
 	
-	public ICanvasDrawable(RenderingCanvas canvas) {
+	public ICanvasDrawable(RenderingCanvas canvas, IComponentDescriptor desc) {
+		this.descr = desc;
 		this.canvas = canvas;
 		this.gridLocations = new Vector<>();
 		this.regions = new Vector<>();
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
+	}
+	
+	public ICanvasDrawable(RenderingCanvas canvas) {
+		this(canvas,null);
 	}
 
 }

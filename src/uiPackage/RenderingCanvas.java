@@ -20,8 +20,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
+
+import componentdescriptors.ResistorDescriptor;
+import module1.MainWindow;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
 
@@ -31,7 +37,9 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	/** Here screen will be stored. */
 	private BufferedImage renderImage;
+	private BufferedImage animationLayer;
 
+	private MainWindow mw;
 	/** Transformation of the camera. */
 	AffineTransform camTransform;
 	/** Last clicked point in local space. */
@@ -244,6 +252,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		try {
 			renderImage = new BufferedImage((int) Math.ceil(getWidth() * quality),
 					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_RGB);
+			animationLayer = new BufferedImage((int) Math.ceil(getWidth() * quality),
+					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_ARGB);
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -268,7 +278,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		repaint();
 	}
 
-	public RenderingCanvas() {
+	public RenderingCanvas(MainWindow parent) {
+		this.mw = parent;
 		this.camTransform = new AffineTransform();
 		this.minLayer = 0;
 		this.setDoubleBuffered(true);
@@ -297,23 +308,23 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		g.setColor(gridColor);
 
-		for (double i = -gap * scale; i < getWidth() ; i += gap * scale) {
+		for (double i = -gap * scale; i < getWidth(); i += gap * scale) {
 			var shift = (-offX % gap) * scale;
 			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
 		for (double i = -gap * scale; i < getHeight(); i += gap * scale) {
 			var shift = (-offY % gap) * scale;
-			g.drawLine(0, (int) Math.round(i+shift), this.getWidth(), (int) Math.round(i+shift));
+			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
 		}
 		g.setColor(secondaryGridColor);
 
-		for (double i = -gap * scale; i < getWidth() ; i += gap * scale) {
+		for (double i = -gap * scale; i < getWidth(); i += gap * scale) {
 			var shift = (-offX % gap + gap / 2) * scale;
 			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = -gap * scale; i < getHeight() ; i += gap * scale) {
+		for (double i = -gap * scale; i < getHeight(); i += gap * scale) {
 			var shift = (-offY % gap + gap / 2) * scale;
-			g.drawLine(0, (int) Math.round(i+shift), this.getWidth(), (int) Math.round(i+shift));
+			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
 		}
 	}
 
@@ -323,6 +334,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		var t1 = System.nanoTime();
 		reset(quality);
 		Graphics2D renderContext = (Graphics2D) renderImage.getGraphics();
+		Graphics2D animContext = (Graphics2D) animationLayer.getGraphics();
 		renderContext.scale(quality, quality);
 		drawGrid(renderContext);
 
@@ -336,6 +348,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
 		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
+		animContext.setTransform(renderContext.getTransform());
 //		renderContext.draw(new Rectangle(p1,dim));
 		for (int i = inRect.length - 1; i >= 0; --i) {
 			// System.out.println("layer: " + c.layer);
@@ -355,6 +368,9 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		if (!g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this)) {
 			System.out.println("Not drawn");
 		}
+		if (!g.drawImage(animationLayer.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this)) {
+			System.out.println("Not drawn");
+		}
 		var t2 = System.nanoTime();
 		double rTime = (t2 - t1) / 1000000000d;
 		double goalTime = 1d / 30d;
@@ -369,7 +385,19 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	public void mouseClicked(MouseEvent e) {
 
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+		if (t != null) {
+			if (t.descr != null) {
+				t.descr.displayProperties(mw.descriptionPanel);
+			} else {
+				mw.descriptionPanel.removeAll();
+				mw.descriptionPanel.repaint();
+			}
+		} else {
+			mw.descriptionPanel.removeAll();
+			mw.descriptionPanel.repaint();
+		}
 		if (t == null) {
+
 			if (mode == currentMode.MAKE_WIRE) {
 				var temp = new NodeUI(this);
 				temp.setRadius(3);
@@ -497,21 +525,21 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 		if (mode == currentMode.MAKE_WIRE) {
-			//find if anynode under
+			// find if anynode under
 			var currNode = ((Wire) currSelected).nodes.lastElement();
 			var b = currNode.regions.get(0).getBounds();
 			var pt = screenToLocalPoint(e.getLocationOnScreen());
-			var contactNodes = objectsMap.getComponentsInRect(pt,b.getSize());
+			var contactNodes = objectsMap.getComponentsInRect(pt, b.getSize());
 			NodeUI contact = null;
-			for(var n : contactNodes) {
-				if(n instanceof NodeUI && n != currNode) {
-					contact = (NodeUI)n;
+			for (var n : contactNodes) {
+				if (n instanceof NodeUI && n != currNode) {
+					contact = (NodeUI) n;
 					break;
 				}
 			}
-			if(contact == null) {
-			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-			}else {
+			if (contact == null) {
+				((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+			} else {
 				((Wire) currSelected).nodes.lastElement().setLocation(contact.getLocation());
 			}
 			currSelected.getTransformedBounds();

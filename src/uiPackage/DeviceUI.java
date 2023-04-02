@@ -1,10 +1,13 @@
 package uiPackage;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -18,7 +21,7 @@ import uiPackage.RenderingCanvas.currentMode;
 public class DeviceUI extends ICanvasDrawable {
 	private static final long serialVersionUID = -4008080849860554001L;
 	private static final int priority = 2;
-
+	
 	@Override
 	public int getPriority() {
 		return priority;
@@ -71,8 +74,8 @@ public class DeviceUI extends ICanvasDrawable {
 		return regions.get(0).getBounds2D().getBounds();
 	}
 
-	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height) {
-		super(canvas);
+	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, IComponentDescriptor descr) {
+		super(canvas,descr);
 		this.nodes = new HashMap<>();
 		//TODO: testing only
 		nodes.put(new NodeUI(canvas), new Point(50,0));
@@ -101,6 +104,7 @@ public class DeviceUI extends ICanvasDrawable {
 		Rectangle bounds = getTransformedBounds(); // get bounding box
 		gx.translate(bounds.getCenterX() - getWidth() / 2.0, bounds.getCenterY() - getHeight() / 2.0);
 		gx.rotate(Math.toRadians(rotation), getWidth() / 2.0, getHeight() / 2.0);
+		animate(rawImage.getGraphics());
 		gx.drawImage(rawImage, 0, 0, getWidth(), getHeight(), canvas);
 		gx.dispose();
 	}
@@ -156,6 +160,18 @@ public class DeviceUI extends ICanvasDrawable {
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 
+	}
+	@Override
+	public void animate(Graphics g) {
+		// TODO Auto-generated method stub
+		
+		Graphics2D gx = (Graphics2D)g;
+		gx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		gx.setColor(Color.red);
+		gx.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
+		gx.drawString("Hi friends", 50, 50);
+		
+		
 	}
 
 }
