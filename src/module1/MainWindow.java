@@ -65,6 +65,7 @@ public class MainWindow {
 	public Color c2 = new Color(30, 30, 30);
 	public Color c3 = new Color(20,20,20);
 	public Color c4 = Color.lightGray;
+	public Color canvasBg = new Color(10,10,10);
 	private JButton btnFullScreen;
 	private JButton btnSnapshot;
 	private JButton stopButton;
@@ -125,6 +126,7 @@ public class MainWindow {
 		btnSnapshot.setBackground(c3);
 		controlPanelRender.add(btnSnapshot);
 		renderCanvas = new RenderingCanvas(this);
+		renderCanvas.setBackground(canvasBg);
 		RenderingArea.add(renderCanvas, BorderLayout.CENTER);
 		renderCanvas.setLayout(null);
 
@@ -176,6 +178,7 @@ public class MainWindow {
 		}
 
 		stopButton = new JButton(new ImageIcon(buttonIcon.getScaledInstance(33, 30, BufferedImage.SCALE_FAST)));
+		stopButton.setToolTipText("Stop Simulation");
 //		stopButton.setBorder(null);
 		stopButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 //		stopButton.setContentAreaFilled(false);
@@ -194,6 +197,7 @@ public class MainWindow {
 			e.printStackTrace();
 		}
 		playButton = new JButton(new ImageIcon(buttonIcon.getScaledInstance(33, 30, BufferedImage.SCALE_FAST)));
+		playButton.setToolTipText("Run/pause Simulation");
 //		playButton.setBorder(null);
 		playButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -266,7 +270,7 @@ public class MainWindow {
 		devicesPanel.add(deviceScrollPane);
 
 		JTree tree = new JTree();
-		tree.setBackground(new Color(0, 0, 0));
+		tree.setBackground(new Color(20, 20, 20));
 		tree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("JTree") {
 			{
 				DefaultMutableTreeNode node_1;
@@ -335,7 +339,7 @@ public class MainWindow {
 		telemetryPanel.add(lbl_TELEMETRY);
 
 		teleScreen = new TelemetryScreen(telemetryPanel);
-		teleScreen.updateValues(123456789.0, 0, 0, 10000999999.0, 0, runStatus.PAUSED);
+		teleScreen.updateValues(0, 0, 0, 0, 0, runStatus.STOPPED);
 //		((CardLayout) cardPanel.getLayout()).show(cardPanel, "telemetry");
 
 		JPanel descriptionParent = new JPanel();
@@ -377,6 +381,45 @@ public class MainWindow {
 		JMenu mnNewMenu = new JMenu("File");
 //		mnNewMenu.setBackground(Color.DARK_GRAY);
 		menuBar.add(mnNewMenu);
+		
+		JMenuItem mntmNewMenuItem = new JMenuItem("Save");
+		mnNewMenu.add(mntmNewMenuItem);
+		
+		JMenuItem mntmNewMenuItem_1 = new JMenuItem("New");
+		mnNewMenu.add(mntmNewMenuItem_1);
+		
+		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Open");
+		mnNewMenu.add(mntmNewMenuItem_2);
+		
+		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Exit");
+		mnNewMenu.add(mntmNewMenuItem_3);
+		
+		JMenu mnNewMenu_2 = new JMenu("View");
+		menuBar.add(mnNewMenu_2);
+		
+		JMenu mnNewMenu_3 = new JMenu("Theme");
+		mnNewMenu_2.add(mnNewMenu_3);
+		ButtonGroup themeGrp = new ButtonGroup();
+		JRadioButtonMenuItem rdbtnmntmNewRadioItem_1 = new JRadioButtonMenuItem("Light");
+		mnNewMenu_3.add(rdbtnmntmNewRadioItem_1);
+		
+		JRadioButtonMenuItem rdbtnmntmNewRadioItem = new JRadioButtonMenuItem("Dark");
+		rdbtnmntmNewRadioItem.setSelected(true);
+		mnNewMenu_3.add(rdbtnmntmNewRadioItem);
+		themeGrp.add(rdbtnmntmNewRadioItem);
+		themeGrp.add(rdbtnmntmNewRadioItem_1);
+		
+		JMenu mnNewMenu_1 = new JMenu("Simulate");
+		menuBar.add(mnNewMenu_1);
+		
+		JMenuItem mntmNewMenuItem_4 = new JMenuItem("Run");
+		mnNewMenu_1.add(mntmNewMenuItem_4);
+		
+		JMenuItem mntmNewMenuItem_5 = new JMenuItem("Pause");
+		mnNewMenu_1.add(mntmNewMenuItem_5);
+		
+		JMenuItem mntmNewMenuItem_6 = new JMenuItem("Stop");
+		mnNewMenu_1.add(mntmNewMenuItem_6);
 
 		mainFrame.setVisible(true);
 

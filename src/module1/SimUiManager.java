@@ -17,10 +17,10 @@ public class SimUiManager {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		var mainWin = new MainWindow();
-		for(int i = 0; i <200; ++i) {
+		for(int i = 0; i <5000; ++i) {
 			// temp =  new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100);
 			var temp = new DeviceUI(mainWin.renderCanvas,"/resources/transparent.png",(int)(100),(int)(100), new ResistorDescriptor());
-			temp.setLocalPosition((int)(Math.random() * 5000), (int)(Math.random() * 5000)).setRotation(0 * Math.random());
+			temp.setLocalPosition((int)(Math.random() * 20000), (int)(Math.random() * 20000)).setRotation(0 * Math.random());
 			//MainWindow.renderCanvas.Render();
 			mainWin.renderCanvas.Render();
 		}

@@ -52,7 +52,7 @@ public class TelemetryScreen extends JPanel{
 	}
 
 	public TelemetryScreen(JComponent parent) {
-		this.setBackground(new Color(0, 0, 80));
+		this.setBackground(new Color(20, 20, 20));
 		parent.add(this);
 		this.setLayout(new FormLayout(
 				new ColumnSpec[] { FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC, },

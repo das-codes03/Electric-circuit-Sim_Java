@@ -251,7 +251,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	public boolean reset(double quality) {
 		try {
 			renderImage = new BufferedImage((int) Math.ceil(getWidth() * quality),
-					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_RGB);
+					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_ARGB);
 			animationLayer = new BufferedImage((int) Math.ceil(getWidth() * quality),
 					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_ARGB);
 			return true;
@@ -290,8 +290,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		this.objectsMap = new BiHashMap(boxSize);
 	}
 
-	Color gridColor = new Color(0, 50, 0);
-	Color secondaryGridColor = new Color(00, 30, 00);
+	Color gridColor = new Color(50, 50, 50);
+	Color secondaryGridColor = new Color(30, 30, 30);
 //	public double scaleX = 1;
 //	public double scaleY = 1;
 //	public int offsetX = 0;
