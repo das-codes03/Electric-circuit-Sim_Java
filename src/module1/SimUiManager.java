@@ -1,6 +1,7 @@
 package module1;
 
 import java.awt.Point;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -17,14 +18,20 @@ public class SimUiManager {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		var mainWin = new MainWindow();
-		for(int i = 0; i <5000; ++i) {
-			// temp =  new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100);
-			var temp = new DeviceUI(mainWin.renderCanvas,"/resources/transparent.png",(int)(100),(int)(100), new ResistorDescriptor());
-			temp.setLocalPosition((int)(Math.random() * 20000), (int)(Math.random() * 20000)).setRotation(0 * Math.random());
+		for(int i = 0; i <10000; ++i) {
+//			 temp =  new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100);
+			try {
+				new ResistorDescriptor(mainWin.renderCanvas, new Point((int)(Math.random() * 20000), (int)(Math.random() * 20000)));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//			var temp = new DeviceUI(mainWin.renderCanvas,"/resources/transparent.png",(int)(100),(int)(100));
+//			temp.setLocalPosition((int)(Math.random() * 20000), (int)(Math.random() * 20000)).setRotation(360 * Math.random());
 			//MainWindow.renderCanvas.Render();
-			mainWin.renderCanvas.Render();
+			
 		}
-//		
+//		mainWin.renderCanvas.Render();
 //		Wire w = new Wire(MainWindow.renderCanvas);
 //		Vector<NodeUI> nodes = new Vector<>();
 //		nodes.add(new NodeUI(new Point(0,100),MainWindow.renderCanvas));

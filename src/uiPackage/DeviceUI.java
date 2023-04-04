@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -12,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -21,16 +23,18 @@ import uiPackage.RenderingCanvas.currentMode;
 public class DeviceUI extends ICanvasDrawable {
 	private static final long serialVersionUID = -4008080849860554001L;
 	private static final int priority = 2;
-	
+	private static final int LOD_COUNT = 10;
+	private Animable animator;
+
 	@Override
 	public int getPriority() {
 		return priority;
 	}
 
-	private static Map<String, BufferedImage> sharedImageMemory = new HashMap<>();
+	private static Map<String, BufferedImage[]> sharedImageMemory = new HashMap<>();
 	private Point lastClickedLocalSpace;
 	/** Image source. */
-	private BufferedImage rawImage = null;
+	private ArrayList<BufferedImage> rawimage;
 	private double rotation = 00d; // in degrees
 	protected Map<NodeUI, Point> nodes; // node_reference->localposition
 
@@ -41,6 +45,7 @@ public class DeviceUI extends ICanvasDrawable {
 		updateNodes();
 		return this;
 	}
+
 	private void updateNodes() {
 		AffineTransform at = new AffineTransform();
 		at.setToTranslation(getX(), getY());
@@ -48,17 +53,22 @@ public class DeviceUI extends ICanvasDrawable {
 		for (var n : nodes.keySet()) {
 			var pt = nodes.get(n);
 			at.translate(pt.x, pt.y);
-			n.setLocation((int)at.getTranslateX(),(int)at.getTranslateY());
+			n.setLocation((int) at.getTranslateX(), (int) at.getTranslateY());
 			at.translate(-pt.x, -pt.y);
 		}
 	}
+
 	// TODO: override set location
-	public DeviceUI setLocalPosition(int x, int y) {
-		setLocation(new Point(x, y));
+	@Override
+	public void setLocation(Point loc) {
+		setLocation(loc.x, loc.y);
+	}
+	@Override
+	public void setLocation(int x, int y) {
+		super.setLocation(x, y);
 		updateNodes();
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
-		return this;
 	}
 
 	@Override
@@ -74,38 +84,78 @@ public class DeviceUI extends ICanvasDrawable {
 		return regions.get(0).getBounds2D().getBounds();
 	}
 
-	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, IComponentDescriptor descr) {
-		super(canvas,descr);
-		this.nodes = new HashMap<>();
-		//TODO: testing only
-		nodes.put(new NodeUI(canvas), new Point(50,0));
-		nodes.put(new NodeUI(canvas), new Point(-50,0));
+	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height) {
+		this(canvas, imagePath, width, height, null, null, null);
+	}
 
-		//***********************
+	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, IComponentDescriptor descr,
+			Point[] nodes, Animable animator) {
+		super(canvas, descr);
+		this.nodes = new HashMap<>();
+		this.rawimage = new ArrayList<>();
+		this.animator = animator;
+		if (nodes != null)
+			for (var p : nodes) {
+				this.nodes.put(new NodeUI(canvas, 5), p);
+			}
+
+		// ***********************
 		this.lastClickedLocalSpace = new Point(0, 0);
 		setSize(new Dimension(width, height));
 		// dimensions = new Dimension(width, height);
-		if (!sharedImageMemory.containsKey(imagePath))
-			try {
-				rawImage = ImageIO.read(getClass().getResource(imagePath));
-				sharedImageMemory.put(imagePath, rawImage);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		else
-			rawImage = sharedImageMemory.get(imagePath);
+//		BufferedImage temp = ResourceManager.loadImage(imagePath);
+//		if (!sharedImageMemory.containsKey(imagePath))
+//			try {
+//				var lods = new BufferedImage[LOD_COUNT];
+//				for (int i = 0; i < lods.length; ++i) {
+//					BufferedImage temp = ImageIO.read(getClass().getResource(imagePath));
+//					var x = temp.getWidth();
+//					var y = temp.getHeight();
+//					x = (int) Math.ceil(x / Math.pow(2, i));
+//					y = (int) Math.ceil(y / Math.pow(2, i));
+//					Image toolkitImage = temp.getScaledInstance(x, y, Image.SCALE_SMOOTH);
+//					int w = toolkitImage.getWidth(null);
+//					int h = toolkitImage.getHeight(null);
+//
+//					// width and height are of the toolkit image
+//					BufferedImage newImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+//					Graphics g = newImage.getGraphics();
+//					g.drawImage(toolkitImage, 0, 0, null);
+//					g.dispose();
+//					lods[i] = newImage;
+//				}
+//				sharedImageMemory.put(imagePath, lods);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+		try {
+			rawimage = ResourceManager.loadImage(imagePath, LOD_COUNT);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
 		// parent.add(this);
 	}
 
+	boolean flag = false;
+
 	public void update(Graphics g) {
 		Graphics2D gx = (Graphics2D) g.create();
+		int lod = Math.max(Math.min(canvas.getLOD(), LOD_COUNT - 1), 0);
+		System.out.println(lod);
+		BufferedImage img =applyAldebo(rawimage.get(lod),new Color((int)(Math.random() * 255),(int)(Math.random() * 255),(int)(Math.random() * 255)));
+//		BufferedImage img = rawimage.get(lod);
+//		BufferedImage img = copyImage(rawimage.get(lod));
 		Rectangle bounds = getTransformedBounds(); // get bounding box
 		gx.translate(bounds.getCenterX() - getWidth() / 2.0, bounds.getCenterY() - getHeight() / 2.0);
 		gx.rotate(Math.toRadians(rotation), getWidth() / 2.0, getHeight() / 2.0);
-		animate(rawImage.getGraphics());
-		gx.drawImage(rawImage, 0, 0, getWidth(), getHeight(), canvas);
+		gx.drawImage(img, 0, 0, getWidth(), getHeight(), canvas);
+//		if (!flag) {
+		if (animator != null)
+			animator.animate(gx);
+//			flag = true;
+//		}
 		gx.dispose();
 	}
 
@@ -121,7 +171,7 @@ public class DeviceUI extends ICanvasDrawable {
 		var p = canvas.screenToLocalPoint(e.getLocationOnScreen());
 		int dx = p.x - getX() - lastClickedLocalSpace.x;
 		int dy = p.y - getY() - lastClickedLocalSpace.y;
-		setLocalPosition(getX() + dx, getY() + dy);
+		setLocation(getX() + dx, getY() + dy);
 
 	}
 
@@ -160,18 +210,6 @@ public class DeviceUI extends ICanvasDrawable {
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 
-	}
-	@Override
-	public void animate(Graphics g) {
-		// TODO Auto-generated method stub
-		
-		Graphics2D gx = (Graphics2D)g;
-		gx.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		gx.setColor(Color.red);
-		gx.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
-		gx.drawString("Hi friends", 50, 50);
-		
-		
 	}
 
 }

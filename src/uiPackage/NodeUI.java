@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 import uiPackage.RenderingCanvas.currentMode;
 
@@ -16,19 +17,22 @@ public class NodeUI extends ICanvasDrawable {
 	 */
 	private static final long serialVersionUID = 4558460949541414417L;
 	private static final int priority = 0;
-	public double radius = 5;
+	public int radius = 5;
 	private Color nodeColor = Color.red;
 	public void setNodeColor(Color c) {
 		nodeColor = c;
 	}
-	public void setRadius(double r) {
+	public void setRadius(int r) {
 		radius = r;
 		getTransformedBounds();
 	}
-	public NodeUI(RenderingCanvas canvas) {
-		this(new Point(), canvas);
+	public NodeUI(RenderingCanvas canvas, int radius) {
+		this(new Point(), canvas, radius);
 	}
-
+	@Override
+	public void setLocation(Point loc) {
+		setLocation(loc.x,loc.y);
+	}
 	@Override
 	public void setLocation(int x, int y) {
 		// TODO Auto-generated method stub
@@ -37,11 +41,13 @@ public class NodeUI extends ICanvasDrawable {
 		canvas.objectsMap.store(this);
 	}
 
-	public NodeUI(Point p, RenderingCanvas canvas) {
+	public NodeUI(Point p, RenderingCanvas canvas, int radius) {
 		super(canvas);
-		canvas.objectsMap.store(this);
+		this.radius = radius;
+		setSize(radius * 2, radius * 2);
 		setLocation(p);
-		setSize((int) (2 * radius), (int) (2 * radius));
+		getTransformedBounds();
+		canvas.objectsMap.store(this);
 	}
 
 	@Override
@@ -124,10 +130,5 @@ public class NodeUI extends ICanvasDrawable {
 	public int getPriority() {
 		// TODO Auto-generated method stub
 		return priority;
-	}
-	@Override
-	public void animate(Graphics g) {
-		// TODO Auto-generated method stub
-		
 	}
 }

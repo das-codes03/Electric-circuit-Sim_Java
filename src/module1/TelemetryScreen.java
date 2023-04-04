@@ -1,6 +1,7 @@
 package module1;
 
 import java.awt.Color;
+import utilities.*;
 import java.awt.Component;
 import java.awt.Font;
 import java.text.SimpleDateFormat;
@@ -21,18 +22,7 @@ public class TelemetryScreen extends JPanel{
 		RUNNING, PAUSED, STOPPED
 	}
 
-	private static HashMap<Integer, String> unitMap = new HashMap<>(); // Map<x,suffix> which means 10^x -> prefix
-	static {
-		unitMap.put(12, "T");
-		unitMap.put(9, "G");
-		unitMap.put(6, "M");
-		unitMap.put(3, "k");
-		unitMap.put(0, "");
-		unitMap.put(-3, "m");
-		unitMap.put(-6, "μ");
-		unitMap.put(-9, "n");
-		unitMap.put(-12, "p");
-	}
+	
 	private JLabel timeElapsedLabel;
 	private JLabel livePowerLabel;
 	private JLabel totalEnergyLabel;
@@ -41,15 +31,7 @@ public class TelemetryScreen extends JPanel{
 	private JLabel StatusLabel;
 	private JComponent parent;
 
-	String getPrefixed(double val) {
-		String str = "";
-		int x = 0;
-		if(val > 0)
-			x = 3 * ((int) (Math.log10(val) / 3));
-		val /= Math.pow(10, x);
-		str = String.format("%.8f", val) + " " + unitMap.get(x);
-		return str;
-	}
+	
 
 	public TelemetryScreen(JComponent parent) {
 		this.setBackground(new Color(20, 20, 20));
@@ -121,9 +103,9 @@ public class TelemetryScreen extends JPanel{
 
 	public void updateValues(double t, double livePower, double totalEnergy, double livePeakCurrent, double peakCurrent,
 			runStatus status) {
-
+		final int SIG_DIGITS = 8;
 		if (t < 60) {
-			timeElapsedLabel.setText(getPrefixed(t) + "s");
+			timeElapsedLabel.setText( NumericUtilities.getPrefixed(t,SIG_DIGITS) + "s");
 		} else if (t < 60 * 60) {
 			String tStr = String.format("%02d:%02.3f s", (int) (t / 60), t % 60);
 			timeElapsedLabel.setText(tStr);
@@ -132,10 +114,10 @@ public class TelemetryScreen extends JPanel{
 			timeElapsedLabel.setText(tStr);
 		}
 
-		livePowerLabel.setText(getPrefixed(livePower) + "W");
-		totalEnergyLabel.setText(getPrefixed(totalEnergy) + "Wh");
-		livePeakCurrentLabel.setText(getPrefixed(livePeakCurrent) + "A");
-		peakCurrentLabel.setText(getPrefixed(peakCurrent) + "A");
+		livePowerLabel.setText(NumericUtilities.getPrefixed(livePower,SIG_DIGITS) + "W");
+		totalEnergyLabel.setText(NumericUtilities.getPrefixed(totalEnergy,SIG_DIGITS) + "Wh");
+		livePeakCurrentLabel.setText(NumericUtilities.getPrefixed(livePeakCurrent,SIG_DIGITS) + "A");
+		peakCurrentLabel.setText(NumericUtilities.getPrefixed(peakCurrent,SIG_DIGITS) + "A");
 		switch (status) {
 		case PAUSED: {
 			StatusLabel.setText("PAUSED");

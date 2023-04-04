@@ -7,10 +7,15 @@ import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
-public interface IComponentDescriptor {
+public abstract class IComponentDescriptor {
+	public IComponentDescriptor(RenderingCanvas canvas) {
+		// TODO Auto-generated constructor stub
+		this.canvas = canvas;
+	}
+	private RenderingCanvas canvas;
 	public abstract void displayProperties(JComponent parent);
+	protected void setDefaultFormat(JComponent parent) {
 
-	default void setDefaultFormat(JComponent parent) {
 		parent.add(new JLabel(""));
 
 		var comps = parent.getComponents();

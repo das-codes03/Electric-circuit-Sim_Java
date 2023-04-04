@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.util.Vector;
 
 import uiPackage.RenderingCanvas.BiHashMap.MapBox;
@@ -24,24 +25,26 @@ public class Wire extends ICanvasDrawable {
 	private Color wireColor = Color.pink;
 	public double wireThickness = 5;
 	public double wireBoundWidth = 10;
+
 	public void addNode(NodeUI n) {
-		if(n == null)
-			n = new NodeUI(canvas);
+		if (n == null)
+			n = new NodeUI(canvas, 10);
 		nodes.add(n);
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
 		// canvas.components.add(this);
 		canvas.bringToFront(this);
 	}
+
 	public void setWire(Vector<NodeUI> nodes) {
 		canvas.objectsMap.remove(this);
 		this.nodes = nodes;
-		
+
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
 		// canvas.components.add(this);
 		canvas.bringToFront(this);
-		
+
 	}
 
 	public Wire(RenderingCanvas canvas) {
@@ -57,13 +60,13 @@ public class Wire extends ICanvasDrawable {
 		// TODO Auto-generated method stub
 		regions.clear();
 		AffineTransform at = new AffineTransform();
-		for(var n : nodes) {
+		for (var n : nodes) {
 			canvas.objectsMap.store(n);
 		}
 		for (int i = 0; i < nodes.size() - 1; i++) {
 			NodeUI currN = nodes.get(i);
 			NodeUI nextN = nodes.get(i + 1);
-			
+
 			// translate to current node
 			at.translate(currN.getX(), currN.getY());
 
@@ -83,7 +86,7 @@ public class Wire extends ICanvasDrawable {
 
 			// reset the transform for next segment!
 			at.setToIdentity();
-			
+
 		}
 		System.out.println("Wire : " + nodes.size());
 		return null;
@@ -103,7 +106,7 @@ public class Wire extends ICanvasDrawable {
 			var nextNPos = nodes.get(i + 1).getLocation();
 			gx.drawLine(currNPos.x, currNPos.y, nextNPos.x, nextNPos.y);
 		}
-		
+
 		gx.dispose();
 	}
 
@@ -152,11 +155,6 @@ public class Wire extends ICanvasDrawable {
 	@Override
 	public int getPriority() {
 		return priority;
-	}
-	@Override
-	public void animate(Graphics g) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
