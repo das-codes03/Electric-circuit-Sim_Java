@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
 
 import uiPackage.RenderingCanvas.currentMode;
 
-public class NodeUI extends ICanvasDrawable {
+public class NodeUI extends CanvasDrawable {
 	/**
 	 * 
 	 */

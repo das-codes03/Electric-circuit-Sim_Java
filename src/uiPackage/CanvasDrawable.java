@@ -10,11 +10,12 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.util.Vector;
 
+import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
 import uiPackage.RenderingCanvas.BiHashMap.MapBox;
 
-public abstract class ICanvasDrawable extends Component implements MouseInputListener {
+public abstract class CanvasDrawable extends JComponent implements MouseInputListener {
 	/**
 	 * 
 	 */
@@ -22,7 +23,7 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 
 	abstract Rectangle getTransformedBounds();
 
-	final IComponentDescriptor descr;
+	final ComponentDescriptor descr;
 	protected Vector<MapBox> gridLocations;
 	protected Vector<Shape> regions;
 	private Color aldebo;
@@ -33,23 +34,6 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 	public RenderingCanvas canvas;
 
 	public abstract void update(Graphics g);
-
-	private static int getRGB(int x, int y, int[] pixels, int width, int height, boolean hasAlphaChannel) {
-		int pixelLength = 3;
-		if (hasAlphaChannel)
-			pixelLength++;
-		int pos = (x * pixelLength * width) + (y * pixelLength);
-
-		int argb = -16777216; // 255 alpha
-		if (hasAlphaChannel) {
-			argb = (((int) pixels[pos++] & 0xff) << 24); // alpha
-		}
-
-		argb += ((int) pixels[pos++] & 0xff); // blue
-		argb += (((int) pixels[pos++] & 0xff) << 8); // green
-		argb += (((int) pixels[pos++] & 0xff) << 16); // red
-		return argb;
-	}
 
 	public static BufferedImage applyAldebo(BufferedImage original, Color aldebo) {
 		BufferedImage img = copyImage(original);
@@ -62,37 +46,13 @@ public abstract class ICanvasDrawable extends Component implements MouseInputLis
 			int r = (rgb >> 16) & 0xff;
 			int g = (rgb >> 8) & 0xff;
 			int b = rgb & 0xff;
-if(i == 20181) {
-	System.out.println("here");
-}
 			r = (int) (r * alRGB[0]);
 			g = (int) (g * alRGB[1]);
 			b = (int) (b * alRGB[2]);
-			rgb = a<<24 | r<<16 | g<<8 | b;
-			
+			rgb = a << 24 | r << 16 | g << 8 | b;
 			bts[i] = rgb;
 		}
 		return img;
-//		for(int i = 0; i < img.getWidth(); ++i) {
-//			for(int j = 0; j < img.getHeight(); ++j) {
-////				img.getRGB(i, j);
-//				var rgb = getRGB(i, j, data, img.getWidth(), img.getHeight()	, true);
-//				int a = (rgb>>24)&0xff;
-//				int r = (rgb>>16)&0xff;
-//				int g = (rgb>>8)&0xff;
-//				int b = rgb&0xff;
-//				
-//				r =(int)(r * (aldebo.getRed()/255.0));
-//				g =(int)(g * (aldebo.getGreen()/255.0));
-//				b =(int)(b * (aldebo.getBlue()/255.0));
-//				rgb = a;
-//				rgb = (rgb << 8) + r;
-//				rgb = (rgb << 8) + g;
-//				rgb = (rgb << 8) + b;
-//				img.setRGB(i, j, rgb);
-//			}
-//		}
-//		return img;
 	}
 
 	public static BufferedImage copyImage(BufferedImage source) {
@@ -103,7 +63,7 @@ if(i == 20181) {
 		return b;
 	}
 
-	public int compareTo(ICanvasDrawable obj2) {
+	public int compareTo(CanvasDrawable obj2) {
 		if (this.getPriority() < obj2.getPriority()) {
 			return -1;
 		}
@@ -119,11 +79,11 @@ if(i == 20181) {
 		return 0;
 	}
 
-	public ICanvasDrawable(RenderingCanvas canvas, IComponentDescriptor desc) {
+	public CanvasDrawable(RenderingCanvas canvas, ComponentDescriptor desc) {
 		this(canvas, desc, Color.white);
 	}
 
-	public ICanvasDrawable(RenderingCanvas canvas, IComponentDescriptor desc, Color aldebo) {
+	public CanvasDrawable(RenderingCanvas canvas, ComponentDescriptor desc, Color aldebo) {
 		this.setAldebo(aldebo);
 		this.descr = desc;
 		this.canvas = canvas;
@@ -133,7 +93,7 @@ if(i == 20181) {
 		this.addMouseMotionListener(this);
 	}
 
-	public ICanvasDrawable(RenderingCanvas canvas) {
+	public CanvasDrawable(RenderingCanvas canvas) {
 		this(canvas, null, Color.white);
 	}
 

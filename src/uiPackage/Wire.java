@@ -14,7 +14,7 @@ import java.util.Vector;
 
 import uiPackage.RenderingCanvas.BiHashMap.MapBox;
 
-public class Wire extends ICanvasDrawable {
+public class Wire extends CanvasDrawable {
 
 	/**
 	 * 

@@ -19,6 +19,8 @@ import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -36,8 +38,12 @@ import componentdescriptors.ResistorDescriptor;
 import module1.TelemetryScreen.runStatus;
 import java.awt.BorderLayout;
 
-public class MainWindow implements ActionListener {
+public class MainWindow extends JFrame implements ActionListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * @wbp.parser.entryPoint
 	 */
@@ -68,20 +74,15 @@ public class MainWindow implements ActionListener {
 	 * @wbp.parser.entryPoint
 	 */
 	public MainWindow() {
-		try {
-			UIManager.setLookAndFeel(new FlatMacDarkLaf());
-			UIManager.put("RootPane.background", new Color(20, 20, 20));
-		} catch (UnsupportedLookAndFeelException ex) {
-		}
-		System.out.println(System.setProperty("sun.java2d.opengl", "true"));
-		JFrame mainFrame = new JFrame();
-		// mainFrame.getContentPane().setBackground(c2);
-		mainFrame.getContentPane().setLayout(new BoxLayout(mainFrame.getContentPane(), BoxLayout.Y_AXIS));
+
+//		JFrame this = new JFrame();
+		// this.getContentPane().setBackground(c2);
+		this.getContentPane().setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
 
 		JPanel simSpace = new JPanel();
 //		simSpace.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		// simSpace.setBackground(Color.DARK_GRAY);
-		mainFrame.getContentPane().add(simSpace);
+		this.getContentPane().add(simSpace);
 		simSpace.setLayout(new BoxLayout(simSpace, BoxLayout.X_AXIS));
 
 		JSplitPane VerticalPane = new JSplitPane();
@@ -263,7 +264,7 @@ public class MainWindow implements ActionListener {
 		mapping.put("General", new String[] { "Resistor", "Inductor", "Capacitor" });
 		mapping.put("Power Source", new String[] { "DC Source", "AC Source", "Square wave" });
 		mapping.put("Load", new String[] { "Bulb", "LED", "Motor" });
-		mapping.put("Switch", new String[] {"Simple switch", "Push button [on]", "Push button [off]"});
+		mapping.put("Switch", new String[] { "Simple switch", "Push button [on]", "Push button [off]" });
 		setComponentList(mapping);
 
 		deviceScrollPane.setViewportView(tree);
@@ -314,16 +315,16 @@ public class MainWindow implements ActionListener {
 			renderer.setTextSelectionColor(Color.green);
 		}
 
-		mainFrame.setSize(1024, 1024);
-		mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-//		mainFrame.setForeground(Color.DARK_GRAY);
-		mainFrame.setTitle("Simulator");
-		mainFrame.setIconImage(buttonIcon);
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setSize(1024, 1024);
+		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+//		this.setForeground(Color.DARK_GRAY);
+		this.setTitle("Simulator");
+		this.setIconImage(buttonIcon);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
 //		menuBar.setBackground(c2);
-		mainFrame.setJMenuBar(menuBar);
+		this.setJMenuBar(menuBar);
 
 		JMenu mnNewMenu = new JMenu("File");
 //		mnNewMenu.setBackground(Color.DARK_GRAY);
@@ -368,7 +369,7 @@ public class MainWindow implements ActionListener {
 		JMenuItem mntmNewMenuItem_6 = new JMenuItem("Stop");
 		mnNewMenu_1.add(mntmNewMenuItem_6);
 
-		mainFrame.setVisible(true);
+		this.setVisible(true);
 		setListeners();
 	}
 
@@ -376,6 +377,11 @@ public class MainWindow implements ActionListener {
 		tree = new JTree();
 		tree.setBackground(new Color(20, 20, 20));
 		tree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("Devices") {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			{
 				for (var m : mapping.keySet()) {
 					DefaultMutableTreeNode node_1 = new DefaultMutableTreeNode(m);
@@ -384,51 +390,6 @@ public class MainWindow implements ActionListener {
 					}
 					add(node_1);
 				}
-//				DefaultMutableTreeNode node_1;
-//				node_1 = new DefaultMutableTreeNode("colors");
-//				node_1.add(new DefaultMutableTreeNode("blue"));
-//				node_1.add(new DefaultMutableTreeNode("violet"));
-//				node_1.add(new DefaultMutableTreeNode("red"));
-//				node_1.add(new DefaultMutableTreeNode("yellow"));
-//				node_1.add(new DefaultMutableTreeNode("Pink"));
-//				add(node_1);
-//				node_1.ge
-//				node_1 = new DefaultMutableTreeNode("sports");
-//				node_1.add(new DefaultMutableTreeNode("basketball"));
-//				node_1.add(new DefaultMutableTreeNode("soccer"));
-//				node_1.add(new DefaultMutableTreeNode("football"));
-//				node_1.add(new DefaultMutableTreeNode("hockey"));
-//				add(node_1);
-//				node_1 = new DefaultMutableTreeNode("food");
-//				node_1.add(new DefaultMutableTreeNode("hot dogs"));
-//				node_1.add(new DefaultMutableTreeNode("pizza"));
-//				node_1.add(new DefaultMutableTreeNode("ravioli"));
-//				node_1.add(new DefaultMutableTreeNode("bananas"));
-//				add(node_1);
-//				node_1 = new DefaultMutableTreeNode("sports");
-//				node_1.add(new DefaultMutableTreeNode("basketball"));
-//				node_1.add(new DefaultMutableTreeNode("soccer"));
-//				node_1.add(new DefaultMutableTreeNode("football"));
-//				node_1.add(new DefaultMutableTreeNode("hockey"));
-//				add(node_1);
-//				node_1 = new DefaultMutableTreeNode("food");
-//				node_1.add(new DefaultMutableTreeNode("hot dogs"));
-//				node_1.add(new DefaultMutableTreeNode("pizza"));
-//				node_1.add(new DefaultMutableTreeNode("ravioli"));
-//				node_1.add(new DefaultMutableTreeNode("bananas"));
-//				add(node_1);
-//				node_1 = new DefaultMutableTreeNode("sports");
-//				node_1.add(new DefaultMutableTreeNode("basketball"));
-//				node_1.add(new DefaultMutableTreeNode("soccer"));
-//				node_1.add(new DefaultMutableTreeNode("football"));
-//				node_1.add(new DefaultMutableTreeNode("hockey"));
-//				add(node_1);
-//				node_1 = new DefaultMutableTreeNode("food");
-//				node_1.add(new DefaultMutableTreeNode("hot dogs"));
-//				node_1.add(new DefaultMutableTreeNode("pizza"));
-//				node_1.add(new DefaultMutableTreeNode("ravioli"));
-//				node_1.add(new DefaultMutableTreeNode("bananas"));
-//				add(node_1);
 			}
 		}));
 	}
@@ -489,18 +450,15 @@ public class MainWindow implements ActionListener {
 		var x = (double) slider.getValue() / (double) (slider.getMaximum() - slider.getMinimum());
 		var k = Math.pow(x, 3);
 		speed = NumericUtilities.getRounded((1 - k) * minSpeed + k * maxSpeed, 4);
-
 		speedLabel.setText("1 sec = " + NumericUtilities.getPrefixed(speed, 4) + "s");
 	}
 
 	protected void stopButton() {
-		// TODO Auto-generated method stub
-
+		System.out.println("Stop button clicked");
 	}
 
 	protected void snapShotButton() {
-		// TODO Auto-generated method stub
-
+		System.out.println("Snapshot button clicked");
 	}
 
 	public void runButton() {
@@ -516,6 +474,7 @@ public class MainWindow implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-
+		System.out.println(e.getActionCommand());
 	}
+
 }

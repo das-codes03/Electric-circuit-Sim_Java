@@ -9,6 +9,8 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -33,6 +35,7 @@ import componentdescriptors.ResistorDescriptor;
 import module1.MainWindow;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
+	
 
 	enum currentMode {
 		MOVE_CANVAS, DRAG_COMPONENT, MAKE_WIRE, NONE
@@ -48,18 +51,19 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	/** Last clicked point in local space. */
 	Point lastClicked;
 	currentMode mode;
-	ICanvasDrawable currSelected = null;
+	CanvasDrawable currSelected = null;
 	// minimum layer till now
 	private long minLayer;
 	/** Size of each box in component grid. */
 	private int boxSize = 1000;
 	double quality = 1;
+	//**Higher level, low quality, better performance.*/
 	double lodMultiplier = 5;
 	/** Component grid divisions. */
 	public BiHashMap objectsMap;
-
+	
 	/** Bring this component to top. */
-	public void bringToFront(ICanvasDrawable comp) {
+	public void bringToFront(CanvasDrawable comp) {
 		comp.layer = minLayer - 1;
 		minLayer--;
 	}
@@ -87,7 +91,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			}
 
 			private final Rectangle boxRect;
-			private final Vector<ICanvasDrawable> components;
+			private final Vector<CanvasDrawable> components;
 		}
 
 		private Rectangle generateRect(int xi, int yi) {
@@ -112,7 +116,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				return null;
 		}
 
-		public void remove(ICanvasDrawable comp) {
+		public void remove(CanvasDrawable comp) {
 			try {
 				for (var b : comp.gridLocations) {
 					b.components.remove(comp);
@@ -124,7 +128,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			}
 		}
 
-		private MapBox set(int x, int y, ICanvasDrawable comp) {
+		private MapBox set(int x, int y, CanvasDrawable comp) {
 			MapBox box;
 			if ((box = getBox(x, y)) == null) {
 				HashMap<Integer, MapBox> m = null;
@@ -174,7 +178,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			return new Point(x, y);
 		}
 
-		public void store(ICanvasDrawable comp) {
+		public void store(CanvasDrawable comp) {
 			remove(comp);
 			comp.gridLocations.clear();
 			for (var x : comp.regions) {
@@ -186,7 +190,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			bringToFront(comp);
 		}
 
-		public Set<ICanvasDrawable> getComponentsInRect(Point p, Dimension dimension) {
+		public Set<CanvasDrawable> getComponentsInRect(Point p, Dimension dimension) {
 			var b1 = getBoxCoordinate(p);
 			var b2 = getBoxCoordinate(
 					new Point((int) (p.x + dimension.getWidth()), (int) (p.y + dimension.getHeight())));
@@ -198,9 +202,9 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 			int y2 = (b2.y);
 
-			SortedSet<ICanvasDrawable> temp = new TreeSet<>(new Comparator<ICanvasDrawable>() {
+			SortedSet<CanvasDrawable> temp = new TreeSet<>(new Comparator<CanvasDrawable>() {
 				@Override
-				public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
+				public int compare(final CanvasDrawable o1, final CanvasDrawable o2) {
 					return o1.compareTo(o2);
 				}
 			});
@@ -225,20 +229,12 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 					}
 				}
 			}
-
-//			temp.sort(new Comparator<ICanvasDrawable>() {
-//				@Override
-//				public int compare(final ICanvasDrawable o1, final ICanvasDrawable o2) {
-//					return o1.compareTo(o2);
-//				}
-//			});
-
 			return temp;
 		}
 
-		public ICanvasDrawable getTop(Point localPoint) {
+		public CanvasDrawable getTop(Point localPoint) {
 			var b = getBoxCoordinate(localPoint);
-			ICanvasDrawable found = null;
+			CanvasDrawable found = null;
 			var s = getBox(b.x, b.y);
 			if (s == null)
 				return null;
@@ -287,6 +283,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	}
 
 	public RenderingCanvas(MainWindow parent) {
+		this.setFocusable(true);
+		
 		this.mw = parent;
 		this.camTransform = new AffineTransform();
 		this.minLayer = 0;
@@ -343,7 +341,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
 
 		reset(quality);
 		Graphics2D renderContext = (Graphics2D) renderImage.getGraphics();
@@ -362,47 +359,28 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
 		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
 		animContext.setTransform(renderContext.getTransform());
-//		renderContext.draw(new Rectangle(p1,dim));
 
 		var t1 = System.nanoTime();
 		for (int i = inRect.length - 1; i >= 0; --i) {
-			// System.out.println("layer: " + c.layer);
 			var c = inRect[i];
-			((ICanvasDrawable) c).update(renderContext);
+			((CanvasDrawable) c).update(renderContext);
 		}
-//		for(int i = 0; i < inRect.length; ++i) {
-//			System.out.println(inRect[i].hashCode());
-//		}
-//		
-//		System.out.println("Inrect count = " + inRect.length);
-		// FOR DEBUGGING PURPOSE ///
-//		File outputfile = new File("image.png");
-//		try {
-//			ImageIO.write(renderImage, "png", outputfile);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 
-		if (!g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this)) {
-			System.out.println("Not drawn");
-		}
-		if (!g.drawImage(animationLayer.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this)) {
-			System.out.println("Not drawn");
-		}
+		g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
+		g.drawImage(animationLayer.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
+	
 		var t2 = System.nanoTime();
 		double rTime = (t2 - t1) / 1000000000d;
 		double goalTime = 1d / 30d;
 		System.out.println("Render time: " + rTime + " sec. Quality = " + quality + " Ratio = " + goalTime / rTime);
-		quality = (Math.pow((goalTime / rTime), 3) + quality) / 2;
-		quality = Math.max(0.01, Math.min(1, (quality)));
-//		g2.dispose();
+//		quality = (Math.pow((goalTime / rTime), 3) + quality) / 2;
+//		quality = Math.max(0.01, Math.min(1, (quality)));
 
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-
+this.requestFocus();
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		System.out.println(t);
 		if (t != null) {
@@ -454,25 +432,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		}
 
 		Render();
-		// TODO Auto-generated method stub
-		// var curr = ComponentListUI.last;
-		// System.out.println("Local point: " +
-		// screenToLocalPoint(e.getLocationOnScreen()));
-//		while (curr != null) {
-//			if (ComponentListUI.last.handleMouseEvent(e))
-//				return;
-//			else
-//				curr = curr.prevInOrder;
-//		}
-
-//		System.out.println(e.getLocationOnScreen());
-//		var t1 = System.nanoTime();
-//		var s = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
-//		System.out.println("Offset: " + camTransform.getTranslateX());
-//		var t2 = System.nanoTime();
-//		System.out.println("Time taken click: " + (t2 - t1) / 1000000000d);
-
-		// Render();
+		
 	}
 
 	@Override
@@ -565,9 +525,5 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			objectsMap.store(currSelected);
 			Render();
 		}
-//		if (mode == currentMode.MAKE_WIRE) {
-//			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-//			Render();
-//		}
 	}
 }

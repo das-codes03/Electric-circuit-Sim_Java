@@ -20,7 +20,7 @@ import javax.imageio.ImageIO;
 
 import uiPackage.RenderingCanvas.currentMode;
 
-public class DeviceUI extends ICanvasDrawable {
+public class DeviceUI extends CanvasDrawable {
 	private static final long serialVersionUID = -4008080849860554001L;
 	private static final int priority = 2;
 	private static final int LOD_COUNT = 10;
@@ -63,6 +63,7 @@ public class DeviceUI extends ICanvasDrawable {
 	public void setLocation(Point loc) {
 		setLocation(loc.x, loc.y);
 	}
+
 	@Override
 	public void setLocation(int x, int y) {
 		super.setLocation(x, y);
@@ -88,7 +89,7 @@ public class DeviceUI extends ICanvasDrawable {
 		this(canvas, imagePath, width, height, null, null, null);
 	}
 
-	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, IComponentDescriptor descr,
+	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, ComponentDescriptor descr,
 			Point[] nodes, Animable animator) {
 		super(canvas, descr);
 		this.nodes = new HashMap<>();
@@ -99,35 +100,9 @@ public class DeviceUI extends ICanvasDrawable {
 				this.nodes.put(new NodeUI(canvas, 5), p);
 			}
 
-		// ***********************
 		this.lastClickedLocalSpace = new Point(0, 0);
 		setSize(new Dimension(width, height));
-		// dimensions = new Dimension(width, height);
-//		BufferedImage temp = ResourceManager.loadImage(imagePath);
-//		if (!sharedImageMemory.containsKey(imagePath))
-//			try {
-//				var lods = new BufferedImage[LOD_COUNT];
-//				for (int i = 0; i < lods.length; ++i) {
-//					BufferedImage temp = ImageIO.read(getClass().getResource(imagePath));
-//					var x = temp.getWidth();
-//					var y = temp.getHeight();
-//					x = (int) Math.ceil(x / Math.pow(2, i));
-//					y = (int) Math.ceil(y / Math.pow(2, i));
-//					Image toolkitImage = temp.getScaledInstance(x, y, Image.SCALE_SMOOTH);
-//					int w = toolkitImage.getWidth(null);
-//					int h = toolkitImage.getHeight(null);
-//
-//					// width and height are of the toolkit image
-//					BufferedImage newImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-//					Graphics g = newImage.getGraphics();
-//					g.drawImage(toolkitImage, 0, 0, null);
-//					g.dispose();
-//					lods[i] = newImage;
-//				}
-//				sharedImageMemory.put(imagePath, lods);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
+
 		try {
 			rawimage = ResourceManager.loadImage(imagePath, LOD_COUNT);
 		} catch (IOException e) {
@@ -135,7 +110,6 @@ public class DeviceUI extends ICanvasDrawable {
 		}
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
-		// parent.add(this);
 	}
 
 	boolean flag = false;
@@ -144,18 +118,13 @@ public class DeviceUI extends ICanvasDrawable {
 		Graphics2D gx = (Graphics2D) g.create();
 		int lod = Math.max(Math.min(canvas.getLOD(), LOD_COUNT - 1), 0);
 		System.out.println(lod);
-		BufferedImage img =applyAldebo(rawimage.get(lod),new Color((int)(Math.random() * 255),(int)(Math.random() * 255),(int)(Math.random() * 255)));
-//		BufferedImage img = rawimage.get(lod);
-//		BufferedImage img = copyImage(rawimage.get(lod));
+		BufferedImage img = rawimage.get(lod);
 		Rectangle bounds = getTransformedBounds(); // get bounding box
 		gx.translate(bounds.getCenterX() - getWidth() / 2.0, bounds.getCenterY() - getHeight() / 2.0);
 		gx.rotate(Math.toRadians(rotation), getWidth() / 2.0, getHeight() / 2.0);
 		gx.drawImage(img, 0, 0, getWidth(), getHeight(), canvas);
-//		if (!flag) {
 		if (animator != null)
 			animator.animate(gx);
-//			flag = true;
-//		}
 		gx.dispose();
 	}
 

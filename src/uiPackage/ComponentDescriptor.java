@@ -1,14 +1,15 @@
 package uiPackage;
 
 import java.awt.Color;
+import java.awt.Point;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
-public abstract class IComponentDescriptor {
-	public IComponentDescriptor(RenderingCanvas canvas) {
+public abstract class ComponentDescriptor {
+	public ComponentDescriptor(RenderingCanvas canvas, Point pos) {
 		// TODO Auto-generated constructor stub
 		this.canvas = canvas;
 	}

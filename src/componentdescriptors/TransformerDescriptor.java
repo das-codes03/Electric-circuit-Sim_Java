@@ -22,39 +22,40 @@ import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
 
-public class ResistorDescriptor extends ComponentDescriptor {
-	private double resistance = 0.00001000000d;
-	private double current = 0;
+public class TransformerDescriptor extends ComponentDescriptor {
+	private int primary = 12;
+	private int secondary = 220;
+	private double primarycurrent = 0;
+	private double secondarycurrent = 0;
 	private DeviceUI uiComp;
-	public ResistorDescriptor(RenderingCanvas canvas) throws IOException {
-		this(canvas, new Point(0,0));
+
+	public TransformerDescriptor(RenderingCanvas canvas) throws IOException {
+		this(canvas, new Point(0, 0));
 	}
-	public ResistorDescriptor(RenderingCanvas canvas, Point position) throws IOException {
+
+	public TransformerDescriptor(RenderingCanvas canvas, Point position) throws IOException {
 		super(canvas, position);
-		this.uiComp= new DeviceUI(canvas, "components/resistor.png", 100, 50, this,
-				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
+		this.uiComp = new DeviceUI(canvas, "components/transformer.png", 200, 200, this,
+				new Point[] { new Point(95, -87), new Point(-95, -87), new Point(95, 87), new Point(-95, 87) }, new Animable() {
 					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
+
 					@Override
 					public void animate(Graphics g) {
 						Graphics2D gx = (Graphics2D) g.create();
-						gx.translate(50, 25);
+						gx.translate(100, 100);
 						gx.setColor(Color.white);
-						Animable.writeCenteredText(NumericUtilities.getPrefixed(resistance, 4) + "Ω",
-								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 30));
-						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -40));
-//						String dir = "+  -";
-//						if(emf < 0) {
-//							dir = "-  +";
-//						}
-//						Animable.writeCenteredText(dir,
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -40, null);
+//						Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
+//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
+//						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
+//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
+						gx.rotate(Math.toRadians(90));
+						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -25, -100, null);
+						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -25, 70, null);
+
 						gx.dispose();
 					}
 				});
 		uiComp.setLocation(position);
-//		uiComp.setRotation(45);
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class ResistorDescriptor extends ComponentDescriptor {
 		JLabel restag = new JLabel("Resistance: ");
 		parent.add(restag);
 		JTextField resval = new JTextField();
-		resval.setText(Double.toString(resistance));
+		resval.setText(Integer.toString(primary));
 		parent.add(resval);
 
 		JLabel lol = new JLabel("Open: ");

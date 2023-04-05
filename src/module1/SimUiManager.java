@@ -1,63 +1,78 @@
 package module1;
 
+import java.awt.Color;
+import java.awt.Container;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
+
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
 import componentdescriptors.ResistorDescriptor;
 import uiPackage.NodeUI;
+import uiPackage.RenderingCanvas;
 import uiPackage.DeviceUI;
-import uiPackage.IComponentDescriptor;
+import uiPackage.ComponentDescriptor;
 import uiPackage.Wire;
 
 public class SimUiManager {
 
-	ArrayList<IComponentDescriptor> components;
-	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		var mainWin = new MainWindow();
-		for(int i = 0; i <10000; ++i) {
-//			 temp =  new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100);
+	private static ArrayList<ComponentDescriptor> components;
+	private static MainWindow mainWin;
+
+	public static void addComponent(String typeName, Point screenPos) {
+		try {
+			Class<ComponentDescriptor> act = (Class<ComponentDescriptor>) Class
+					.forName("componentdescriptors." + typeName + "Descriptor");
 			try {
-				new ResistorDescriptor(mainWin.renderCanvas, new Point((int)(Math.random() * 20000), (int)(Math.random() * 20000)));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				act.getConstructor(RenderingCanvas.class, Point.class).newInstance(mainWin.renderCanvas,
+						screenPos);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-//			var temp = new DeviceUI(mainWin.renderCanvas,"/resources/transparent.png",(int)(100),(int)(100));
-//			temp.setLocalPosition((int)(Math.random() * 20000), (int)(Math.random() * 20000)).setRotation(360 * Math.random());
-			//MainWindow.renderCanvas.Render();
-			
+		} catch (ClassNotFoundException e) {
+			JOptionPane.showMessageDialog(mainWin,"Component " + typeName + " doesn't exist in inventory. Make sure your application is updated or send feedback!", "Component not found", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
 		}
-//		mainWin.renderCanvas.Render();
-//		Wire w = new Wire(MainWindow.renderCanvas);
-//		Vector<NodeUI> nodes = new Vector<>();
-//		nodes.add(new NodeUI(new Point(0,100),MainWindow.renderCanvas));
-//		nodes.add(new NodeUI(new Point(0,200),MainWindow.renderCanvas));
-//		nodes.add(new NodeUI(new Point(-300,200),MainWindow.renderCanvas));
-//		nodes.add(new NodeUI(new Point(-500,500),MainWindow.renderCanvas));
-//		w.setWire(nodes);
+		mainWin.renderCanvas.Render();
+	}
 
-		//Wire w = new Wire(MainWindow.renderCanvas);
-//		w.nodes.add(new NodeUI(new Point(0, 0)));
-//		w.nodes.add(new NodeUI(new Point(100, 100)));
-//		w.nodes.add(new NodeUI(new Point(200, 100)));
-//		w.nodes.add(new NodeUI(new Point(300, 100)));
-//		w.nodes.add(new NodeUI(new Point(400, 0)));
-//		w.nodes.add(new NodeUI(new Point(500, 0)));
-		//w.getTransformedBounds();
-		//MainWindow.renderCanvas.wires.add(w);
-		//MainWindow.renderCanvas.componentGrid.store(w);
+	public static void addComponent(String typeName) {
+		addComponent(typeName, new Point(0, 0));
+	}
+
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel(new FlatMacDarkLaf());
+			UIManager.put("RootPane.background", new Color(20, 20, 20));
+		} catch (UnsupportedLookAndFeelException ex) {
+			System.out.println("Couldn't set look and feel");
+		}
+		mainWin = new MainWindow();
+		HashMap<Integer, String> nameMap = new HashMap<>();
+		nameMap.put(0, "Capacitor");
+		nameMap.put(1, "Inductor");
+		nameMap.put(2, "Resistor");
+		nameMap.put(3, "DCSource");
+		nameMap.put(4, "ACSource");
+		nameMap.put(5, "Transformer");
+		nameMap.put(6, "Diode");
+		nameMap.put(7, "Switch");
 		
-		// ComponentListUI.append((ComponentDescriptor) new
-		// ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100).setLocalPosition(0,0).setRotation(0));
-
-		System.out.println("done");
-//		ComponentListUI.append((ComponentDescriptor) new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100).setLocalPosition(100, 200).setRotation(35));
-//		ComponentListUI.append((ComponentDescriptor) new ComponentDescriptor(MainWindow.renderCanvas,"/resources/transparent.png",100,100).setLocalPosition(100, 230).setRotation(5));
-//		
+		for(int i = 0; i < 3000; ++i) {
+			addComponent(nameMap.get(i%8), new Point((int)(Math.random() * 10000),(int)(Math.random() * 10000)));
+		}
 	}
 
 }
