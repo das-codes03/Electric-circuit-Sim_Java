@@ -60,19 +60,19 @@ public class SimUiManager {
 			System.out.println("Couldn't set look and feel");
 		}
 		mainWin = new MainWindow();
-		HashMap<Integer, String> nameMap = new HashMap<>();
-		nameMap.put(0, "Capacitor");
-		nameMap.put(1, "Inductor");
-		nameMap.put(2, "Resistor");
-		nameMap.put(3, "DCSource");
-		nameMap.put(4, "ACSource");
-		nameMap.put(5, "Transformer");
-		nameMap.put(6, "Diode");
-		nameMap.put(7, "Switch");
-		
-		for(int i = 0; i < 3000; ++i) {
-			addComponent(nameMap.get(i%8), new Point((int)(Math.random() * 10000),(int)(Math.random() * 10000)));
-		}
+//		HashMap<Integer, String> nameMap = new HashMap<>();
+//		nameMap.put(0, "Capacitor");
+//		nameMap.put(1, "Inductor");
+//		nameMap.put(2, "Resistor");
+//		nameMap.put(3, "DCSource");
+//		nameMap.put(4, "ACSource");
+//		nameMap.put(5, "Transformer");
+//		nameMap.put(6, "Diode");
+//		nameMap.put(7, "Switch");
+//		nameMap.put(8, "Bulb");
+//		for(int i = 0; i < 3000; ++i) {
+//			addComponent(nameMap.get(i%nameMap.size()), new Point((int)(Math.random() * 10000),(int)(Math.random() * 10000)));
+//		}
 	}
 
 }

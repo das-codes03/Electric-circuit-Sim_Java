@@ -78,5 +78,9 @@ public class TransformerDescriptor extends ComponentDescriptor {
 		parent.repaint();
 		System.out.println("here");
 	}
-
+	@Override
+	public void updateAttributes(Object...o) {
+		// TODO Auto-generated method stub
+//		resistance = (double) o[0];
+	}
 }

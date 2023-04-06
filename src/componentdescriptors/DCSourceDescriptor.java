@@ -78,5 +78,9 @@ public class DCSourceDescriptor extends ComponentDescriptor {
 		parent.repaint();
 		System.out.println("here");
 	}
-
+	@Override
+	public void updateAttributes(Object...o) {
+		// TODO Auto-generated method stub
+		emf = (double) o[0];
+	}
 }

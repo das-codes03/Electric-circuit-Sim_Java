@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -13,6 +15,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
@@ -60,9 +64,31 @@ public class ResistorDescriptor extends ComponentDescriptor {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
+//		parent.addlis
+		
 		JLabel restag = new JLabel("Resistance: ");
 		parent.add(restag);
 		JTextField resval = new JTextField();
+		resval.getDocument().addDocumentListener(new DocumentListener() {
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		resval.setText(Double.toString(resistance));
 		parent.add(resval);
 
@@ -76,6 +102,11 @@ public class ResistorDescriptor extends ComponentDescriptor {
 		parent.revalidate();
 		parent.repaint();
 		System.out.println("here");
+	}
+	@Override
+	public void updateAttributes(Object...o) {
+		// TODO Auto-generated method stub
+		resistance = (double) o[0];
 	}
 
 }

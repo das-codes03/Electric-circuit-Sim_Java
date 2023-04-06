@@ -18,6 +18,7 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -30,6 +31,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
@@ -262,9 +264,11 @@ public class MainWindow extends JFrame implements ActionListener {
 		devicesPanel.add(deviceScrollPane);
 		HashMap<String, String[]> mapping = new HashMap<>();
 		mapping.put("General", new String[] { "Resistor", "Inductor", "Capacitor" });
-		mapping.put("Power Source", new String[] { "DC Source", "AC Source", "Square wave" });
-		mapping.put("Load", new String[] { "Bulb", "LED", "Motor" });
-		mapping.put("Switch", new String[] { "Simple switch", "Push button [on]", "Push button [off]" });
+		mapping.put("Power Source", new String[] { "DCSource", "ACSource" });
+		mapping.put("Load", new String[] { "Bulb" });
+		mapping.put("Switch", new String[] { "Switch" });
+		mapping.put("AC devices", new String[] {"Transformer"});
+		mapping.put("Semiconductor devices", new String[] {"Diode"});
 		setComponentList(mapping);
 
 		deviceScrollPane.setViewportView(tree);
@@ -427,13 +431,19 @@ public class MainWindow extends JFrame implements ActionListener {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// TODO Auto-generated method stub
-				System.out.println("Clicked " + tree.getLastSelectedPathComponent());
-				try {
-					new ResistorDescriptor(renderCanvas);
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				var clickedNode = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+				if(clickedNode.getChildCount() == 0) {
+					if(e.getClickCount() == 2) {
+						SimUiManager.addComponent(clickedNode.toString(), renderCanvas.screenToLocalPoint(new Point(300,e.getLocationOnScreen().y)));
+					}
 				}
+//				System.out.println("Clicked " + tree.getLastSelectedPathComponent());
+//				try {
+//					new ResistorDescriptor(renderCanvas);
+//				} catch (IOException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
 				renderCanvas.Render();
 			}
 		});

@@ -35,7 +35,6 @@ import componentdescriptors.ResistorDescriptor;
 import module1.MainWindow;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
-	
 
 	enum currentMode {
 		MOVE_CANVAS, DRAG_COMPONENT, MAKE_WIRE, NONE
@@ -57,11 +56,11 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	/** Size of each box in component grid. */
 	private int boxSize = 1000;
 	double quality = 1;
-	//**Higher level, low quality, better performance.*/
+	// **Higher level, low quality, better performance.*/
 	double lodMultiplier = 5;
 	/** Component grid divisions. */
 	public BiHashMap objectsMap;
-	
+
 	/** Bring this component to top. */
 	public void bringToFront(CanvasDrawable comp) {
 		comp.layer = minLayer - 1;
@@ -78,6 +77,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		return local;
 	}
 
+	// TODO: convert to single hashmap
 	/** Data structure to store components in grid. */
 	class BiHashMap {
 		class MapBox {
@@ -214,10 +214,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 					var s = getBox(i, j);
 					if (s == null)
 						continue;
-
-//					if (i < x1 + 1 || i > x2 - 1 && j < y1 + 1 && j > y2 - 1) // non corner box
-//						temp.addAll(s.components);
-//					else
 					for (int index = 0; index < s.components.size(); ++index) {
 						var c = s.components.get(index);
 						for (var bnd : c.regions) {
@@ -284,7 +280,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	public RenderingCanvas(MainWindow parent) {
 		this.setFocusable(true);
-		
+
 		this.mw = parent;
 		this.camTransform = new AffineTransform();
 		this.minLayer = 0;
@@ -368,7 +364,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
 		g.drawImage(animationLayer.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
-	
+
 		var t2 = System.nanoTime();
 		double rTime = (t2 - t1) / 1000000000d;
 		double goalTime = 1d / 30d;
@@ -380,7 +376,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-this.requestFocus();
+		this.requestFocus();
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		System.out.println(t);
 		if (t != null) {
@@ -397,7 +393,7 @@ this.requestFocus();
 		if (t == null) {
 
 			if (mode == currentMode.MAKE_WIRE) {
-				var temp = new NodeUI(this,3);
+				var temp = new NodeUI(this, 3);
 				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
 				((Wire) currSelected).addNode(temp);
 				return;
@@ -415,7 +411,7 @@ this.requestFocus();
 						mode = currentMode.NONE;
 					} else {
 						objectsMap.store(t);
-						temp = new NodeUI(this,3);
+						temp = new NodeUI(this, 3);
 						temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
 						((Wire) currSelected).addNode((NodeUI) temp);
 					}
@@ -425,14 +421,14 @@ this.requestFocus();
 				Wire w = new Wire(this);
 				w.addNode((NodeUI) t);
 				currSelected = w;
-				var temp = new NodeUI(this,10);
+				var temp = new NodeUI(this, 10);
 				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
 				w.addNode(temp);
 			}
 		}
 
 		Render();
-		
+
 	}
 
 	@Override

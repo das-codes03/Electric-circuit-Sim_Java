@@ -22,27 +22,37 @@ import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
 
-public class ACSourceDescriptor extends ComponentDescriptor {
-	private double emf = 100d;
+public class BulbDescriptor extends ComponentDescriptor {
+	private Color color = new Color(0, 255, 0);
+	private double intensity = 1;
 	private double current = 0;
 	private DeviceUI uiComp;
 
-	public ACSourceDescriptor(RenderingCanvas canvas) throws IOException {
+	public BulbDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
 
-	public ACSourceDescriptor(RenderingCanvas canvas, Point position) throws IOException {
+	public BulbDescriptor(RenderingCanvas canvas, Point position) throws IOException {
 		super(canvas, position);
-		this.uiComp = new DeviceUI(canvas, "components/acsource.png", 100, 100, this,
+		this.uiComp = new DeviceUI(canvas, "components/bulb.png", 100, 100, this,
 				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
 					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
+					private BufferedImage glow = ResourceManager.loadImage("glow.png", 0).get(0);
+
+					private void drawGlow(Graphics2D g) {
+						Graphics2D gx = (Graphics2D) g.create();
+						gx.translate(-glow.getWidth() / 2, -glow.getHeight() / 2);
+						gx.drawImage(DeviceUI.applyAldebo(glow, color, intensity), -2, -2, null);
+						gx.dispose();
+					}
+
 					@Override
 					public void animate(Graphics g) {
 						Graphics2D gx = (Graphics2D) g.create();
 						gx.translate(50, 50);
+						drawGlow(gx);
+
 						gx.setColor(Color.white);
-						Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
-								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
 						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
 								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
 						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
@@ -55,12 +65,7 @@ public class ACSourceDescriptor extends ComponentDescriptor {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel restag = new JLabel("Resistance: ");
-		parent.add(restag);
-		JTextField resval = new JTextField();
-		resval.setText(Double.toString(emf));
-		parent.add(resval);
-
+		updateAttributes(2.0);
 		JLabel lol = new JLabel("Open: ");
 		parent.add(lol);
 		JCheckBox b = new JCheckBox();
@@ -72,9 +77,10 @@ public class ACSourceDescriptor extends ComponentDescriptor {
 		parent.repaint();
 		System.out.println("here");
 	}
+
 	@Override
-	public void updateAttributes(Object...o) {
+	public void updateAttributes(Object... o) {
 		// TODO Auto-generated method stub
-		emf = (double) o[0];
+		intensity = (double) o[0];
 	}
 }

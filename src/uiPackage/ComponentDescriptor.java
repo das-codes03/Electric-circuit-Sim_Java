@@ -12,7 +12,9 @@ public abstract class ComponentDescriptor {
 	public ComponentDescriptor(RenderingCanvas canvas, Point pos) {
 		// TODO Auto-generated constructor stub
 		this.canvas = canvas;
+		
 	}
+	public abstract void updateAttributes(Object...o);
 	private RenderingCanvas canvas;
 	public abstract void displayProperties(JComponent parent);
 	protected void setDefaultFormat(JComponent parent) {

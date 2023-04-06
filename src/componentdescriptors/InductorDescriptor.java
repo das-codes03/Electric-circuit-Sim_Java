@@ -73,5 +73,9 @@ public class InductorDescriptor extends ComponentDescriptor {
 		parent.repaint();
 		System.out.println("here");
 	}
-
+	@Override
+	public void updateAttributes(Object...o) {
+		// TODO Auto-generated method stub
+		inductance = (double) o[0];
+	}
 }
