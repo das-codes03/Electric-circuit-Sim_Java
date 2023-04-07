@@ -59,7 +59,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	// **Higher level, low quality, better performance.*/
 	double lodMultiplier = 5;
 	/** Component grid divisions. */
-	public BiHashMap objectsMap;
+	public ComponentMapping objectsMap;
 
 	/** Bring this component to top. */
 	public void bringToFront(CanvasDrawable comp) {
@@ -79,7 +79,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	// TODO: convert to single hashmap
 	/** Data structure to store components in grid. */
-	class BiHashMap {
+	class ComponentMapping {
 		class MapBox {
 			public MapBox(int x, int y) {
 				this.components = new Vector<>();
@@ -95,26 +95,26 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		}
 
 		private Rectangle generateRect(int xi, int yi) {
-			var rect = new Rectangle(xi * BiHashMap.this.boxSize, yi * BiHashMap.this.boxSize, BiHashMap.this.boxSize,
-					BiHashMap.this.boxSize);
+			var rect = new Rectangle(xi * ComponentMapping.this.boxSize, yi * ComponentMapping.this.boxSize,
+					ComponentMapping.this.boxSize, ComponentMapping.this.boxSize);
 			return rect;
 		}
 
-		public BiHashMap(int b) { // constructor
+		public ComponentMapping(int b) { // constructor
 			this.boxSize = b;
-			mMap = new HashMap<Integer, HashMap<Integer, MapBox>>();
+			mMap = new HashMap<Point, MapBox>();
 		}
 
 		private final int boxSize;
-		private final HashMap<Integer, HashMap<Integer, MapBox>> mMap;
+		private final HashMap<Point, MapBox> mMap;
 
-		private MapBox getBox(int x, int y) {
-			var temp = mMap.get(x);
-			if (temp != null)
-				return temp.get(y);
-			else
-				return null;
-		}
+//		private MapBox getBox(int x, int y) {
+//			var temp = mMap.get(x);
+//			if (temp != null)
+//				return temp.get(y);
+//			else
+//				return null;
+//		}
 
 		public void remove(CanvasDrawable comp) {
 			try {
@@ -130,14 +130,15 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		private MapBox set(int x, int y, CanvasDrawable comp) {
 			MapBox box;
-			if ((box = getBox(x, y)) == null) {
-				HashMap<Integer, MapBox> m = null;
-				if (!mMap.containsKey(x)) {
-					m = mMap.put(x, new HashMap<Integer, MapBox>());
-				}
-				m = mMap.get(x);
-				m.put(y, new MapBox(x, y));
-				box = m.get(y);
+			Point pt = new Point(x, y);
+			if ((box = mMap.get(pt)) == null) {
+//				if (!mMap.containsKey(x)) {
+//					m = mMap.put(x, new HashMap<Integer, MapBox>());
+//				}
+//				m = mMap.get(x);
+//				m.put(y, new MapBox(x, y));
+				mMap.put(pt, new MapBox(x, y));
+				box = mMap.get(pt);
 			}
 			box.components.add(comp);
 			return box;
@@ -211,7 +212,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			Rectangle rect = new Rectangle(p, dimension);
 			for (int i = x1; i <= x2; ++i) {
 				for (int j = y1; j <= y2; ++j) {
-					var s = getBox(i, j);
+					var s = mMap.get(new Point(i, j));
 					if (s == null)
 						continue;
 					for (int index = 0; index < s.components.size(); ++index) {
@@ -231,7 +232,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		public CanvasDrawable getTop(Point localPoint) {
 			var b = getBoxCoordinate(localPoint);
 			CanvasDrawable found = null;
-			var s = getBox(b.x, b.y);
+			var s = mMap.get(new Point(b.x, b.y));
 			if (s == null)
 				return null;
 			for (var c : s.components) {
@@ -289,7 +290,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		this.addMouseWheelListener(this);
 		this.addMouseMotionListener(this);
 		this.addMouseListener(this);
-		this.objectsMap = new BiHashMap(boxSize);
+		this.objectsMap = new ComponentMapping(boxSize);
 	}
 
 	Color gridColor = new Color(50, 50, 50);

@@ -13,7 +13,7 @@ import java.util.Vector;
 import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
-import uiPackage.RenderingCanvas.BiHashMap.MapBox;
+import uiPackage.RenderingCanvas.ComponentMapping.MapBox;
 
 public abstract class CanvasDrawable extends JComponent implements MouseInputListener {
 	/**

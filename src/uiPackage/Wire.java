@@ -6,13 +6,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 import java.util.Vector;
-
-import uiPackage.RenderingCanvas.BiHashMap.MapBox;
 
 public class Wire extends CanvasDrawable {
 
