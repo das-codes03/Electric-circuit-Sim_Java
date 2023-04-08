@@ -30,7 +30,7 @@ public class NumericUtilities {
 		String str = "";
 		int x = 0;
 		if(val > 0)
-			x = 3 * ((int) (Math.log10(val/999) / 3));
+			x = 3 * ((int) (Math.log10(val/(val < 1?999:1)) / 3));
 		val /= Math.pow(10, x);
 		val = getRounded(val,sigDigits);
 		str = String.format("%.30f", val);

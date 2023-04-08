@@ -22,7 +22,7 @@ import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
 
-public class CapacitorDescriptor extends ComponentDescriptor {
+public class CapacitorDescriptor extends DeviceUI {
 	private double capacitance = 100d;
 	private double current = 0;
 	private DeviceUI uiComp;
@@ -32,9 +32,12 @@ public class CapacitorDescriptor extends ComponentDescriptor {
 	}
 
 	public CapacitorDescriptor(RenderingCanvas canvas, Point position) throws IOException {
-		super(canvas, position);
-		this.uiComp = new DeviceUI(canvas, "components/capacitor.png", 100, 100, this,
-				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
+		
+
+		super(canvas, "components/capacitor.png", 100, 100, 
+				new Point[] { new Point(45, 0), new Point(-45, 0) 
+				}, "Capacitor");
+				addAnimator(new Animable() {
 					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
 
 					@Override
@@ -50,7 +53,27 @@ public class CapacitorDescriptor extends ComponentDescriptor {
 						gx.dispose();
 					}
 				});
-		uiComp.setLocation(position);
+		this.setLocation(position);
+		
+//		super(canvas, position, "Capacitor");
+//		this.uiComp = new DeviceUI(canvas, "components/capacitor.png", 100, 100, this,
+//				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
+//					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
+//
+//					@Override
+//					public void animate(Graphics g) {
+//						Graphics2D gx = (Graphics2D) g.create();
+//						gx.translate(50, 50);
+//						gx.setColor(Color.white);
+//						Animable.writeCenteredText(NumericUtilities.getPrefixed(capacitance, 4) + "C",
+//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
+//						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
+//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
+//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
+//						gx.dispose();
+//					}
+//				});
+//		uiComp.setLocation(position);
 	}
 
 	@Override

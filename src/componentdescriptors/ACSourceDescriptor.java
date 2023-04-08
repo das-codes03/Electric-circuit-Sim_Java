@@ -22,34 +22,35 @@ import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
 
-public class ACSourceDescriptor extends ComponentDescriptor {
+public class ACSourceDescriptor extends DeviceUI {
 	private double emf = 100d;
 	private double current = 0;
-	private DeviceUI uiComp;
 
-	public ACSourceDescriptor(RenderingCanvas canvas) throws IOException {
+	public ACSourceDescriptor(RenderingCanvas canvas, int ID) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
 
 	public ACSourceDescriptor(RenderingCanvas canvas, Point position) throws IOException {
-		super(canvas, position);
-		this.uiComp = new DeviceUI(canvas, "components/acsource.png", 100, 100, this,
-				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
-					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-					@Override
-					public void animate(Graphics g) {
-						Graphics2D gx = (Graphics2D) g.create();
-						gx.translate(50, 50);
-						gx.setColor(Color.white);
-						Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
-								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
-						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
-						gx.dispose();
-					}
-				});
-		uiComp.setLocation(position);
+		super(canvas, "components/acsource.png", 100, 100, 
+		new Point[] { new Point(45, 0), new Point(-45, 0) 
+		}, "ACSource");
+		addAnimator(new Animable() {
+			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
+			@Override
+			public void animate(Graphics g) {
+				Graphics2D gx = (Graphics2D) g.create();
+				gx.translate(50, 50);
+				gx.setColor(Color.white);
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
+						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
+						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
+				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
+				gx.dispose();
+			}});
+
+	this.setLocation(position);
+
 	}
 
 	@Override
@@ -72,6 +73,7 @@ public class ACSourceDescriptor extends ComponentDescriptor {
 		parent.repaint();
 		System.out.println("here");
 	}
+
 	@Override
 	public void updateAttributes(Object...o) {
 		// TODO Auto-generated method stub

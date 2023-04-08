@@ -17,14 +17,50 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import uiPackage.RenderingCanvas.currentMode;
 
-public class DeviceUI extends CanvasDrawable {
+public abstract class DeviceUI extends CanvasDrawable {
 	private static final long serialVersionUID = -4008080849860554001L;
 	private static final int priority = 2;
 	private static final int LOD_COUNT = 10;
+	private final String typeName;
 	private Animable animator;
+	
+	public String getTypeName() {
+		return typeName;
+	}
+	private int ID;
+	public int getID() {
+		return ID;
+	}
+	public void setID(int ID) {
+		this.ID = ID;
+	}
+	public final void addAnimator(Animable anim) {
+		this.animator = anim;
+	}
+
+	public abstract void displayProperties(JComponent parent);
+
+	protected void setDefaultFormat(JComponent parent) {
+
+		parent.add(new JLabel(""));
+
+		var comps = parent.getComponents();
+
+		for (var c : comps) {
+			c.setBackground(parent.getBackground());
+			c.setForeground(Color.green);
+			if (c instanceof JTextField) {
+				((JTextField) c).setCaretColor(Color.yellow);
+				c.setBackground(Color.black);
+			}
+		}
+	}
 
 	@Override
 	public int getPriority() {
@@ -85,20 +121,21 @@ public class DeviceUI extends CanvasDrawable {
 		return regions.get(0).getBounds2D().getBounds();
 	}
 
-	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height) {
-		this(canvas, imagePath, width, height, null, null, null);
+	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, String typeName) {
+		this(canvas, imagePath, width, height, null, typeName);
 	}
 
-	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, ComponentDescriptor descr,
-			Point[] nodes, Animable animator) {
-		super(canvas, descr);
+	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, Point[] nodes, String typeName) {
+		super(canvas);
 		this.nodes = new HashMap<>();
 		this.rawimage = new ArrayList<>();
-		this.animator = animator;
-		if (nodes != null)
+		if (nodes != null) {
+			int index = 0;
 			for (var p : nodes) {
-				this.nodes.put(new NodeUI(canvas, 5), p);
+				this.nodes.put(new NodeUI(canvas, 5, this, index), p);
+				index++;
 			}
+		}
 
 		this.lastClickedLocalSpace = new Point(0, 0);
 		setSize(new Dimension(width, height));
@@ -108,6 +145,7 @@ public class DeviceUI extends CanvasDrawable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		this.typeName = typeName;
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
 	}
@@ -177,6 +215,11 @@ public class DeviceUI extends CanvasDrawable {
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void updateAttributes(Object... o) {
 		// TODO Auto-generated method stub
 
 	}

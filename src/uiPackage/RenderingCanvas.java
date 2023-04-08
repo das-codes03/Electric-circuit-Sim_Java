@@ -32,7 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
 import componentdescriptors.ResistorDescriptor;
-import module1.MainWindow;
+import frontend.MainWindow;
+import frontend.SimUiManager;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
 
@@ -381,8 +382,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		System.out.println(t);
 		if (t != null) {
-			if (t.descr != null) {
-				t.descr.displayProperties(mw.descriptionPanel);
+			if (t instanceof DeviceUI) {
+				((DeviceUI)t).displayProperties(mw.descriptionPanel);
 			} else {
 				mw.descriptionPanel.removeAll();
 				mw.descriptionPanel.repaint();
@@ -420,6 +421,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			} else {
 				mode = currentMode.MAKE_WIRE;
 				Wire w = new Wire(this);
+				SimUiManager.wires.add(w);
 				w.addNode((NodeUI) t);
 				currSelected = w;
 				var temp = new NodeUI(this, 10);

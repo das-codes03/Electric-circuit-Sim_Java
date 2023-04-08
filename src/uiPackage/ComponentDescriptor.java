@@ -9,11 +9,18 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
 public abstract class ComponentDescriptor {
-	public ComponentDescriptor(RenderingCanvas canvas, Point pos) {
+	public ComponentDescriptor(RenderingCanvas canvas, Point pos, String typeName) {
+		this.typeName = typeName;
+		this.ID = 0;
 		// TODO Auto-generated constructor stub
 		this.canvas = canvas;
 		
 	}
+	private final String typeName;
+	public String getTypeName() {
+		return typeName;
+	}
+	private final int ID;
 	public abstract void updateAttributes(Object...o);
 	private RenderingCanvas canvas;
 	public abstract void displayProperties(JComponent parent);
@@ -24,17 +31,12 @@ public abstract class ComponentDescriptor {
 		var comps = parent.getComponents();
 		
 		for (var c : comps) {
-
-			
 			c.setBackground(parent.getBackground());
 			c.setForeground(Color.green);
 			if (c instanceof JTextField) {
 				((JTextField) c).setCaretColor(Color.yellow);
 				c.setBackground(Color.black);
-			}
-			
-
+			}	
 		}
-		
 	}
 }

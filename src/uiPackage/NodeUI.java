@@ -18,21 +18,30 @@ public class NodeUI extends CanvasDrawable {
 	private static final long serialVersionUID = 4558460949541414417L;
 	private static final int priority = 0;
 	public int radius = 5;
+	public final DeviceUI parentDevice;
+	private final int nodeIndex;
 	private Color nodeColor = Color.red;
+
 	public void setNodeColor(Color c) {
 		nodeColor = c;
 	}
+
 	public void setRadius(int r) {
 		radius = r;
 		getTransformedBounds();
 	}
-	public NodeUI(RenderingCanvas canvas, int radius) {
-		this(new Point(), canvas, radius);
+	public NodeUI(RenderingCanvas canvas, int radius, DeviceUI parent, int nodeIndex) {
+		this(new Point(), canvas, radius, parent, nodeIndex);
 	}
+	public NodeUI(RenderingCanvas canvas, int radius) {
+		this(new Point(), canvas, radius, null, 0);
+	}
+
 	@Override
 	public void setLocation(Point loc) {
-		setLocation(loc.x,loc.y);
+		setLocation(loc.x, loc.y);
 	}
+
 	@Override
 	public void setLocation(int x, int y) {
 		// TODO Auto-generated method stub
@@ -41,9 +50,11 @@ public class NodeUI extends CanvasDrawable {
 		canvas.objectsMap.store(this);
 	}
 
-	public NodeUI(Point p, RenderingCanvas canvas, int radius) {
+	public NodeUI(Point p, RenderingCanvas canvas, int radius, DeviceUI parent, int nodeIndex) {
 		super(canvas);
 		this.radius = radius;
+		this.parentDevice = parent;
+		this.nodeIndex = nodeIndex;
 		setSize(radius * 2, radius * 2);
 		setLocation(p);
 		getTransformedBounds();
@@ -76,9 +87,9 @@ public class NodeUI extends CanvasDrawable {
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("Node clicked");
-		if(canvas.mode != currentMode.MAKE_WIRE) {
+		if (canvas.mode != currentMode.MAKE_WIRE) {
 			canvas.mode = currentMode.MAKE_WIRE;
-			
+
 			Wire w = new Wire(canvas);
 			canvas.currSelected = w;
 			w.addNode(this);
@@ -86,13 +97,13 @@ public class NodeUI extends CanvasDrawable {
 //			temp.setLocation(canvas.screenToLocalPoint(e.getLocationOnScreen()));
 //			w.addNode(temp);
 			canvas.Render();
-		}else {
-			if(this != ((Wire)canvas.currSelected).nodes.lastElement()) {
-				((Wire)canvas.currSelected).addNode(this);
+		} else {
+			if (this != ((Wire) canvas.currSelected).nodes.lastElement()) {
+				((Wire) canvas.currSelected).addNode(this);
 				canvas.currSelected = null;
 				canvas.mode = currentMode.NONE;
 			}
-			
+
 		}
 	}
 
@@ -130,5 +141,9 @@ public class NodeUI extends CanvasDrawable {
 	public int getPriority() {
 		// TODO Auto-generated method stub
 		return priority;
+	}
+
+	public int getNodeIndex() {
+		return nodeIndex;
 	}
 }

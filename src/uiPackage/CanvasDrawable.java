@@ -23,7 +23,6 @@ public abstract class CanvasDrawable extends JComponent implements MouseInputLis
 
 	abstract Rectangle getTransformedBounds();
 
-	final ComponentDescriptor descr;
 	protected Vector<MapBox> gridLocations;
 	protected Vector<Shape> regions;
 	private Color aldebo;
@@ -107,13 +106,9 @@ public abstract class CanvasDrawable extends JComponent implements MouseInputLis
 		return 0;
 	}
 
-	public CanvasDrawable(RenderingCanvas canvas, ComponentDescriptor desc) {
-		this(canvas, desc, Color.white);
-	}
 
-	public CanvasDrawable(RenderingCanvas canvas, ComponentDescriptor desc, Color aldebo) {
-		this.setAldebo(aldebo);
-		this.descr = desc;
+
+	public CanvasDrawable(RenderingCanvas canvas) {
 		this.canvas = canvas;
 		this.gridLocations = new Vector<>();
 		this.regions = new Vector<>();
@@ -121,9 +116,6 @@ public abstract class CanvasDrawable extends JComponent implements MouseInputLis
 		this.addMouseMotionListener(this);
 	}
 
-	public CanvasDrawable(RenderingCanvas canvas) {
-		this(canvas, null, Color.white);
-	}
 
 	public void setAldebo(Color aldebo) {
 		this.aldebo = aldebo;
