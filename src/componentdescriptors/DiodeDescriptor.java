@@ -8,16 +8,20 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import Backend.simulator.components.ACSource;
+import Backend.simulator.components.DCSource;
+import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
 import uiPackage.CanvasDrawable;
-import uiPackage.ComponentDescriptor;
+
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
@@ -95,7 +99,16 @@ public class DiodeDescriptor extends DeviceUI {
 		System.out.println("here");
 	}
 	@Override
-	public void updateAttributes(Object...o) {
+	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
+		current =(double) data.get(ACSource.CURRENT);
+	}
+	@Override
+	public void revalidateProperties(SimulationEvent evt) {
+//		try {
+//			evt.sim.setProperty(getID(), DCSource.EMF, emf);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 }

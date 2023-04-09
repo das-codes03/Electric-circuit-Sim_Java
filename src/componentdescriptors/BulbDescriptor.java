@@ -8,16 +8,20 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import Backend.simulator.components.ACSource;
+import Backend.simulator.components.Bulb;
+import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
 import uiPackage.CanvasDrawable;
-import uiPackage.ComponentDescriptor;
+
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
@@ -26,7 +30,8 @@ public class BulbDescriptor extends DeviceUI {
 	private Color color = new Color(0, 255, 0);
 	private double intensity = 1;
 	private double current = 0;
-
+	private double ratedVoltage = 1;
+	private double ratedWattage = 1;
 	public BulbDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
@@ -94,7 +99,6 @@ public class BulbDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		updateAttributes(2.0);
 		JLabel lol = new JLabel("Open: ");
 		parent.add(lol);
 		JCheckBox b = new JCheckBox();
@@ -108,8 +112,18 @@ public class BulbDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(Object... o) {
+	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		intensity = (double) o[0];
+		current =(double) data.get(Bulb.CURRENT);
+		intensity = (double)data.get(Bulb.INTENSITY);
+	}
+	@Override
+	public void revalidateProperties(SimulationEvent evt) {
+		try {
+			evt.sim.setProperty(getID(), Bulb.RATED_VOLTAGE, ratedVoltage);
+			evt.sim.setProperty(getID(), Bulb.RATED_WATTAGE, ratedWattage);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

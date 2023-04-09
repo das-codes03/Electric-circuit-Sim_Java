@@ -20,7 +20,7 @@ public class NodeUI extends CanvasDrawable {
 	public int radius = 5;
 	public final DeviceUI parentDevice;
 	private final int nodeIndex;
-	private Color nodeColor = Color.red;
+	private Color nodeColor = Color.white;
 
 	public void setNodeColor(Color c) {
 		nodeColor = c;

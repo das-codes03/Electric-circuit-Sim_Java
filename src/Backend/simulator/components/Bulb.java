@@ -5,15 +5,18 @@ import Backend.simulator.Component;
 import Backend.simulator.Circuit.Node;
 import Backend.simulator.Circuit.Segment;
 
-public class Resistor extends Component {
+public class Bulb extends Component {
 	public static final String CURRENT = "current";
-	public static final String RESISTANCE = "resistance";
+	public static final String INTENSITY = "intensity";
+	public static final String RATED_VOLTAGE = "ratedvoltage";
+	public static final String RATED_WATTAGE = "ratedwattage";
 
-	public Resistor(Circuit c) {
+	public Bulb(Circuit c) {
 		super(c);
 		segments = new Circuit.Segment[1];
 		segments[0] = c.AddSegment();
-		properties.put(RESISTANCE, 1.0);
+		properties.put(RATED_VOLTAGE, 1.0);
+		properties.put(RATED_WATTAGE, 1.0);
 		updateProperties();
 		updateState(t, 0);
 	}
@@ -21,14 +24,12 @@ public class Resistor extends Component {
 	@Override
 	public void updateState(double t, double dt) {
 		super.updateState(t, dt);
-		segments[0].resistance = (double) properties.get(RESISTANCE);
-//		var current = segments[0].current;
-//		if (Node.compareDepth(segments[0].getNode(0), segments[0].getNode(1)) < 0)
-//			current *= -1;
-		var current = segments[0].current;
-		if (Node.compareDepth(segments[0].getNode(0), segments[0].getNode(1)) < 0)
-			current *= -1;
-		states.put(CURRENT, current);
+		states.put(CURRENT, segments[0].current);
+		segments[0].resistance = Math.pow((double) properties.get(RATED_VOLTAGE), 2)
+				/ (double) properties.get(RATED_WATTAGE);
+		var intensity =Math.abs(segments[0].current) / (double) properties.get(RATED_WATTAGE)
+				/ (double) properties.get(RATED_VOLTAGE);
+		states.put(INTENSITY, intensity);
 	}
 
 	@Override

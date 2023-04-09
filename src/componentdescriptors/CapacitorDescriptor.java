@@ -8,16 +8,23 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
+import Backend.simulator.components.ACSource;
+import Backend.simulator.components.Capacitor;
+import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
+import uiPackage.LogarithmicSlider;
 import uiPackage.CanvasDrawable;
-import uiPackage.ComponentDescriptor;
+
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
@@ -81,15 +88,18 @@ public class CapacitorDescriptor extends DeviceUI {
 		parent.removeAll();
 		JLabel restag = new JLabel("Resistance: ");
 		parent.add(restag);
-		JTextField resval = new JTextField();
-		resval.setText(Double.toString(capacitance));
+		LogarithmicSlider resval = new LogarithmicSlider(-9,9,4);
+
+		resval.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+
+				CapacitorDescriptor.this.capacitance= NumericUtilities.getRounded(resval.getLogValue(),4);
+				canvas.Render();
+			}
+		});
 		parent.add(resval);
 
-		JLabel lol = new JLabel("Open: ");
-		parent.add(lol);
-		JCheckBox b = new JCheckBox();
-
-		parent.add(b);
 
 		setDefaultFormat(parent);
 		parent.revalidate();
@@ -97,8 +107,18 @@ public class CapacitorDescriptor extends DeviceUI {
 		System.out.println("here");
 	}
 	@Override
-	public void updateAttributes(Object...o) {
+	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		capacitance = (double) o[0];
+		current =(double) data.get(ACSource.CURRENT);
 	}
+
+	@Override
+	public void revalidateProperties(SimulationEvent evt) {
+		try {
+			evt.sim.setProperty(getID(), Capacitor.CAPACITANCE, capacitance);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 }

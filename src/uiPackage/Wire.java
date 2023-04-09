@@ -18,9 +18,9 @@ public class Wire extends CanvasDrawable {
 	private static final long serialVersionUID = -4130602527644480994L;
 	private static final int priority = 1;
 	public Vector<NodeUI> nodes;
-	private Color wireColor = Color.pink;
-	public double wireThickness = 5;
-	public double wireBoundWidth = 10;
+	private Color wireColor = Color.white;
+	public double wireThickness = 2;
+	public double wireBoundWidth = 5;
 
 	public void addNode(NodeUI n) {
 		if (n == null)

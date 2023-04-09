@@ -6,6 +6,8 @@ import java.util.*;
 
 import org.apache.commons.math3.linear.*;
 
+import Backend.simulator.Circuit.Loop.segType;
+
 public class Circuit {
 
 	private Set<Component> components;
@@ -20,24 +22,30 @@ public class Circuit {
 	private LUDecomposition solver = null;
 	private static final double SHORT_CIRCUIT_CURRENT = 1e50d;
 	private static final double MIN_RESISTANCE = 1e-10;
+
 	public class Node {
-		Set<Segment> incidentSegments;
-		boolean visited;
-		int depth;
-		Segment backtrackSeg;
-		public Node copyInto(Node destination) {
-			destination.incidentSegments = this.incidentSegments;
-			destination.visited = this.visited;
-			destination.depth = this.depth;
-			destination.backtrackSeg = this.backtrackSeg;
-			return destination;
+		private Set<Segment> incidentSegments;
+		private boolean visited;
+		private int depth;
+		private Segment backtrackSeg;
+
+		public static int compareDepth(Node o1, Node o2) {
+			// TODO Auto-generated method stub
+			if (o1.depth == o2.depth)
+				return 0;
+			else if (o1.depth < o2.depth)
+				return -1;
+			else
+				return 1;
 		}
+
 		public Node() {
 			visited = false;
 			depth = 0;
 			backtrackSeg = null;
 			incidentSegments = new HashSet<>();
 		}
+
 		public Node(Node node) {
 			node.incidentSegments = this.incidentSegments;
 			node.visited = this.visited;
@@ -45,20 +53,30 @@ public class Circuit {
 			node.backtrackSeg = this.backtrackSeg;
 		}
 	}
+
 	public class Segment {
 		boolean Closed;
 		boolean visited;
 
-		
-		public Node[] nodes;
+		private Node n0;
+		private Node n1;
+
+		public Node getNode(int index) {
+			if (index < 0 || index > 1)
+				throw new IndexOutOfBoundsException("Node index must be 0 or 1");
+			else if (index == 0)
+				return n0;
+			else
+				return n1;
+		}
 
 		ArrayList<Integer> belongsToLoops;
 		public double resistance, inductance, capacitance, emf, charge, current;
 
 		public Segment(Node n0, Node n1) {
-			nodes = new Node[2];
-			this.nodes[0] = n0;
-			this.nodes[1] = n1;
+
+			this.n0 = n0;
+			this.n1 = n1;
 			this.resistance = 0;
 			this.inductance = 0;
 			this.capacitance = 0;
@@ -71,20 +89,33 @@ public class Circuit {
 		}
 
 	}
+
 	public class Loop {
-	    ArrayList<Segment> segments;
-	    boolean Closed = true;
-	    void includeSegment(Segment seg, int index)
-	    {
-	        seg.belongsToLoops.add(index);
-	        segments.add(seg);
-	    }
+		ArrayList<Segment> Lsegments;
+		ArrayList<Segment> Rsegments;
+		boolean Closed = true;
+
+		enum segType {
+			LEFT, RIGHT, IGNORED
+		}
+
+		void includeSegment(Segment seg, int index, segType sType) {
+			seg.belongsToLoops.add(index);
+			if (sType == segType.LEFT)
+				this.Lsegments.add(seg);
+			else
+				this.Rsegments.add(seg);
+		}
+
 		public Loop() {
 			super();
-			this.segments = new ArrayList<>(0);
+			this.Lsegments = new ArrayList<>(0);
+			this.Rsegments = new ArrayList<>(0);
+
 			Closed = true;
 		}
 	}
+
 	Node AddNode() {
 		Node n = new Node();
 		nodes.add(n);
@@ -104,8 +135,8 @@ public class Circuit {
 		}
 		Segment s = new Segment(n0, n1);
 		segments.add(s);
-		s.nodes[0].incidentSegments.add(s);
-		s.nodes[1].incidentSegments.add(s);
+		s.n0.incidentSegments.add(s);
+		s.n1.incidentSegments.add(s);
 		return s;
 	}
 
@@ -145,10 +176,10 @@ public class Circuit {
 			nTemp.incidentSegments.addAll(nArray.get(i).incidentSegments);
 
 			for (Segment s : nArray.get(i).incidentSegments) {
-				if (s.nodes[0] == nArray.get(i)) {
-					s.nodes[0] = nTemp;
+				if (s.n0 == nArray.get(i)) {
+					s.n0 = nTemp;
 				} else {
-					s.nodes[1] = nTemp;
+					s.n1 = nTemp;
 				}
 			}
 			nodes.remove(nArray.get(i));
@@ -178,15 +209,14 @@ public class Circuit {
 					continue;
 				boolean found = false;
 
-				if ((x.nodes[0] != curr && (x.nodes[0].visited)) || (x.nodes[1] != curr && (x.nodes[1].visited))
-						|| (x.nodes[0] == x.nodes[1])) {
+				if ((x.n0 != curr && (x.n0.visited)) || (x.n1 != curr && (x.n1.visited)) || (x.n0 == x.n1)) {
 					found = true;
 					ignoredEdges.add(x);
 				}
 
 				if (!found) {
-					Node a = (((x.nodes[0]) == curr) ? (x.nodes[1]) : (x.nodes[0]));
-					a.depth = Integer.max(x.nodes[0].depth, x.nodes[1].depth) + 1;
+					Node a = (((x.n0) == curr) ? (x.n1) : (x.n0));
+					a.depth = Integer.max(x.n0.depth, x.n1.depth) + 1;
 					a.backtrackSeg = x;
 					a.visited = true;
 					bfsQueue.add(a);
@@ -203,25 +233,25 @@ public class Circuit {
 		}
 
 		lowerDepth depth = (Segment a) -> {
-			return (a.nodes[0].depth <= a.nodes[1].depth) ? a.nodes[0] : a.nodes[1];
+			return (a.n0.depth <= a.n1.depth) ? a.n0 : a.n1;
 		};
 
 		Set<Segment> ignoredEdges = new HashSet<Segment>(); // Set of ignored edges will be stored here
 
-		// TODO check for all nodes
 		for (Node n : nodes) {
 			if (!n.visited)
-				GetSpanningTreeUtil(segments.iterator().next().nodes[0], ignoredEdges);
+				GetSpanningTreeUtil(n, ignoredEdges);
 		}
 		for (Segment e : ignoredEdges) {
 
 			Loop l = new Loop(); // new LOOP
 			int index = loops.size();
-			l.includeSegment(e, index); // Adds a segment to loop, and sets belonging loop index of segment
+			l.includeSegment(e, index, segType.IGNORED); // Adds a segment to loop, and sets belonging loop index of
+															// segment
 
 			// Backtracking logic
-			Segment LHS_Segment = e.nodes[0].backtrackSeg;
-			Segment RHS_Segment = e.nodes[1].backtrackSeg;
+			Segment LHS_Segment = e.n0.backtrackSeg;
+			Segment RHS_Segment = e.n1.backtrackSeg;
 
 			Set<Segment> leftList = new HashSet<Segment>();
 			Set<Segment> rightList = new HashSet<Segment>();
@@ -239,7 +269,7 @@ public class Circuit {
 			tmp.retainAll(rightList); // intersection of two lists
 			symmetricDiff.removeAll(tmp); // remove the intersection
 			for (var s : symmetricDiff) {
-				l.includeSegment(s, index);
+				l.includeSegment(s, index, (leftList.contains(s) ? segType.LEFT : segType.RIGHT));
 			}
 			loops.add(l);
 		}
@@ -253,22 +283,36 @@ public class Circuit {
 		return _i_mat;
 	}
 
-	public void updateSegments(double dt) throws Exception {
+	public void updateSegments(double dt) {
 		for (Segment s : segments) {
 			s.current = 0;
 		}
 		for (int i = 0; i < _i_mat.getRowDimension(); ++i) {
-			for (Segment s : loops.get(i).segments) {
-				int mult = 1;
-				if (s.nodes[0].depth <= s.nodes[1].depth) {
-					mult = -1;
-				}
-				s.current = s.current + _i_mat.getEntry(i, 0) * mult;
+			for (Segment s : loops.get(i).Lsegments) {
+//				int mult = 1;
+//				if (s.n0.depth <= s.n1.depth) {
+//					mult = -1;
+//				}
+				s.current = s.current + _i_mat.getEntry(i, 0);// * mult;
 //				if(s.current.isGreaterThan(SHORT_CIRCUIT_CURRENT)) {
 //					throw new Exception("Circuit has short circuit. At segment: " + s.hashCode());
 //				}
 				if ((s.capacitance != 0) || !s.Closed)
-					s.charge = s.charge + _i_mat.getEntry(i, 0) * dt * mult;
+					s.charge = s.charge + _i_mat.getEntry(i, 0) * dt;// * mult;
+				else
+					s.charge = 0;
+			}
+			for (Segment s : loops.get(i).Rsegments) {
+//				int mult = 1;
+//				if (s.n0.depth <= s.n1.depth) {
+//					mult = -1;
+//				}
+				s.current = s.current + _i_mat.getEntry(i, 0) * -1;// * mult;
+//				if(s.current.isGreaterThan(SHORT_CIRCUIT_CURRENT)) {
+//					throw new Exception("Circuit has short circuit. At segment: " + s.hashCode());
+//				}
+				if ((s.capacitance != 0) || !s.Closed)
+					s.charge = s.charge + _i_mat.getEntry(i, 0) * dt * -1;// * mult;
 				else
 					s.charge = 0;
 			}
@@ -281,17 +325,35 @@ public class Circuit {
 		}
 		int i = 0;
 		for (Loop l : loops) { // Iterate through all loops
-			for (Segment s : l.segments) { // Iterate through all segments of each loop
-				int mult = 1;
-				if (s.nodes[0].depth <= s.nodes[1].depth) {
-					mult = -1;
-				}
+			for (Segment s : l.Lsegments) { // Iterate through all segments of each loop
+//				int mult = 1;
+//				if (s.n0.depth <= s.n1.depth) {
+//					mult = -1;
+//				}
 
-				_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) + s.emf * mult); // Add emf of every segment
+				_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) + s.emf);// * mult); // Add emf of every segment
 				if (s.capacitance != 0)
-					_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) - s.charge / s.capacitance * mult); // capactive emf too
+					_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) - s.charge / s.capacitance);// * mult); // capactive emf
+																							// too
 				else if (!s.Closed)
-					_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) - s.charge * 10000000000.0 * mult); // TODO add OPEN
+					_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) - s.charge * 10000000000.0);// * mult); // TODO add OPEN
+				// capacitance
+				// property in
+				// // GenerateResistanceMAtrix()
+			}
+			for (Segment s : l.Rsegments) { // Iterate through all segments of each loop
+//				int mult = 1;
+//				if (s.n0.depth <= s.n1.depth) {
+//					mult = -1;
+//				}
+
+				_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) + s.emf * -1);// * mult); // Add emf of every segment
+				if (s.capacitance != 0)
+					_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) - s.charge / s.capacitance * -1);// * mult); //
+																									// capactive emf too
+				else if (!s.Closed)
+					_e_mat.setEntry(i, 0, _e_mat.getEntry(i, 0) - s.charge * 10000000000.0 * -1);// * mult); // TODO add
+																									// OPEN
 				// capacitance
 				// property in
 				// // GenerateResistanceMAtrix()
@@ -305,7 +367,12 @@ public class Circuit {
 		_l_mat = _l_mat.scalarMultiply(0);
 		int i = 0;
 		for (Loop l : loops) { // Iterate through all loops
-			for (Segment s : l.segments) { // Iterate through all segments of each loop
+			for (Segment s : l.Lsegments) { // Iterate through all segments of each loop
+				for (int b : s.belongsToLoops) {
+					_l_mat.setEntry(i, b, _l_mat.getEntry(i, b) + s.inductance);
+				}
+			}
+			for (Segment s : l.Rsegments) { // Iterate through all segments of each loop
 				for (int b : s.belongsToLoops) {
 					_l_mat.setEntry(i, b, _l_mat.getEntry(i, b) + s.inductance);
 				}
@@ -319,11 +386,19 @@ public class Circuit {
 		_r_mat = _r_mat.scalarMultiply(0);
 		int i = 0;
 		for (Loop l : loops) { // Iterate through all loops
-			for (Segment s : l.segments) { // Iterate through all segments of each loop
+			for (Segment s : l.Lsegments) { // Iterate through all segments of each loop
 				for (int b : s.belongsToLoops) {
 					_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + s.resistance);
 					if (s.capacitance != 0) {
-						_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + dt * s.capacitance);
+						_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + dt / s.capacitance);
+					}
+				}
+			}
+			for (Segment s : l.Rsegments) { // Iterate through all segments of each loop
+				for (int b : s.belongsToLoops) {
+					_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + s.resistance);
+					if (s.capacitance != 0) {
+						_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + dt / s.capacitance);
 					}
 				}
 			}
@@ -354,6 +429,3 @@ public class Circuit {
 		_e_mat = MatrixUtils.createRealMatrix(new double[n][1]);
 	}
 }
-
-
-

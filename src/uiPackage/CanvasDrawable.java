@@ -62,7 +62,7 @@ public abstract class CanvasDrawable extends JComponent implements MouseInputLis
 			Color.RGBtoHSB(r, g, b, alHSB);
 			if(i == bts.length/2) {
 				//hi
-				System.out.println("hi");
+//				System.out.println("hi");
 			}
 			alHSB[2] *= intensity;
 			a =(int) (Math.pow(a/255.0, 1/intensity)*255.0);

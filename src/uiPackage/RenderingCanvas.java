@@ -370,7 +370,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		var t2 = System.nanoTime();
 		double rTime = (t2 - t1) / 1000000000d;
 		double goalTime = 1d / 30d;
-		System.out.println("Render time: " + rTime + " sec. Quality = " + quality + " Ratio = " + goalTime / rTime);
+//		System.out.println("Render time: " + rTime + " sec. Quality = " + quality + " Ratio = " + goalTime / rTime);
 //		quality = (Math.pow((goalTime / rTime), 3) + quality) / 2;
 //		quality = Math.max(0.01, Math.min(1, (quality)));
 
@@ -380,7 +380,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	public void mouseClicked(MouseEvent e) {
 		this.requestFocus();
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
-		System.out.println(t);
+//		System.out.println(t);
 		if (t != null) {
 			if (t instanceof DeviceUI) {
 				((DeviceUI)t).displayProperties(mw.descriptionPanel);
@@ -442,7 +442,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			((Component) t).dispatchEvent(e);
 
 		lastClicked = screenToLocalPoint(e.getLocationOnScreen());
-		System.out.println("Mouse pressed");
+//		System.out.println("Mouse pressed");
 	}
 
 	@Override
@@ -477,7 +477,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				t.dispatchEvent(e);
 			} else {
 				mode = currentMode.MOVE_CANVAS;
-				System.out.println("Dragged canvas");
+//				System.out.println("Dragged canvas");
 				int dx = screenToLocalPoint(e.getLocationOnScreen()).x - lastClicked.x;
 				int dy = screenToLocalPoint(e.getLocationOnScreen()).y - lastClicked.y;
 				camTransform.translate(-dx / camTransform.getScaleX(), -dy / camTransform.getScaleY());

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.HashMap;
 
+import uiPackage.LogarithmicSlider;
 import uiPackage.RenderingCanvas;
 import utilities.NumericUtilities;
 
@@ -66,7 +67,7 @@ public class MainWindow extends JFrame implements ActionListener {
 	private JButton btnSnapshot;
 	private JButton stopButton;
 	private JButton playButton;
-	private JSlider slider;
+	private LogarithmicSlider slider;
 	private JLabel speedLabel;
 	private JLabel runningLabel;
 	private double minSpeed = 0.00000001;
@@ -220,13 +221,14 @@ public class MainWindow extends JFrame implements ActionListener {
 		lbl_Simulation_Speed.setVerticalAlignment(SwingConstants.TOP);
 		simSpeedPnl.add(lbl_Simulation_Speed);
 
-		slider = new JSlider();
+		slider = new LogarithmicSlider(-9, 1,3 );
 
-		slider.setMajorTickSpacing(1600);
-		slider.setMinorTickSpacing(400);
+//		slider.setMajorTickSpacing(10000);
+//		slider.setMinorTickSpacing(2500);
 		slider.setPaintTicks(true);
-		slider.setMaximum(10000);
-		slider.setValue(500);
+//		slider.setSnapToTicks(true);
+//		slider.setMaximum(10000);
+//		slider.setValue(500);
 
 //		slider.setBackground(c2);
 		simSpeedPnl.add(slider);
@@ -460,14 +462,18 @@ public class MainWindow extends JFrame implements ActionListener {
 
 	protected void speedChanged() {
 		// TODO Auto-generated method stub
-		var x = (double) slider.getValue() / (double) (slider.getMaximum() - slider.getMinimum());
-		var k = Math.pow(x, 3);
-		speed = NumericUtilities.getRounded((1 - k) * minSpeed + k * maxSpeed, 4);
-		speedLabel.setText("1 sec = " + NumericUtilities.getPrefixed(speed, 4) + "s");
+//		var x = (double) slider.getValue() / (double) (slider.getMaximum() - slider.getMinimum());
+//		var k = Math.pow(x, 3);
+//		speed = NumericUtilities.getRounded(slider.getLogValue(), 4);
+		speed = slider.getLogValue();
+		speedLabel.setText("1 sec = " + NumericUtilities.getPrefixed(speed, 3) + "s");
+		if (SimUiManager.s != null)
+			SimUiManager.s.sim.setTimeScale(speed);
 	}
 
 	protected void stopButton() {
 		System.out.println("Stop button clicked");
+		SimUiManager.stopSimulation();
 	}
 
 	protected void snapShotButton() {

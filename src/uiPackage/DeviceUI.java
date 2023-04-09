@@ -21,6 +21,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import frontend.SimulationEvent;
 import uiPackage.RenderingCanvas.currentMode;
 
 public abstract class DeviceUI extends CanvasDrawable {
@@ -218,10 +219,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 		// TODO Auto-generated method stub
 
 	}
-
-	public void updateAttributes(Object... o) {
-		// TODO Auto-generated method stub
-
-	}
+	public abstract void revalidateProperties(SimulationEvent evt);
+	public abstract void updateAttributes(HashMap<String, Object> data);
 
 }

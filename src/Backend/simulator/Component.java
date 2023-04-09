@@ -20,6 +20,13 @@ public abstract class Component {
 			throw new NoSuchFieldException(this.getClass().getName() + " doesn't contain state " + s);
 		return state;
 	}
+	public HashMap<String, Object> getAllStates(){
+		HashMap<String, Object> temp = new HashMap<>();
+		for(var k : states.keySet()) {
+			temp.put(k, states.get(k));
+		}
+		return temp;
+	}
 	public void setProperty(String property,Object value) throws NoSuchFieldException {
 		var x = properties.get(property);
 		if(x == null) throw new NoSuchFieldException(this.getClass().getName() + " doesn't contain property " + property);

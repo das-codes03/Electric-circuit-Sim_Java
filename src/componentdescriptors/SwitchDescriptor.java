@@ -9,6 +9,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -17,10 +18,13 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import Backend.simulator.components.ACSource;
+import Backend.simulator.components.Inductor;
+import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
 import uiPackage.CanvasDrawable;
-import uiPackage.ComponentDescriptor;
+
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
@@ -131,9 +135,17 @@ public class SwitchDescriptor extends DeviceUI {
 		System.out.println("here");
 	}
 	@Override
-	public void updateAttributes(Object...o) {
+	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		open = (boolean) o[0];
+		current =(double) data.get(ACSource.CURRENT);
+	}
+	@Override
+	public void revalidateProperties(SimulationEvent evt) {
+//		try {
+//			evt.sim.setProperty(getID(), Inductor.INDUCTANCE, inductance);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 }
