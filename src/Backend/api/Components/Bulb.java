@@ -27,8 +27,8 @@ public class Bulb extends Component {
 		states.put(CURRENT, segments[0].getCurrent());
 		segments[0].setResistance( Math.pow((double) properties.get(RATED_VOLTAGE), 2)
 				/ (double) properties.get(RATED_WATTAGE));
-		var intensity =Math.abs(segments[0].getCurrent()) / (double) properties.get(RATED_WATTAGE)
-				/ (double) properties.get(RATED_VOLTAGE);
+		double power = segments[0].getCurrent() * segments[0].getCurrent()*segments[0].getResistance(); 
+		var intensity =power / (double) properties.get(RATED_WATTAGE);
 		states.put(INTENSITY, intensity);
 	}
 

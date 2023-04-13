@@ -57,64 +57,37 @@ public class ResistorDescriptor extends DeviceUI {
 				gx.setColor(Color.white);
 				Animable.writeCenteredText(NumericUtilities.getPrefixed(resistance, 4) + "Ω", Animable.globalFont, gx,
 						new Point(0, 30));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A", Animable.globalFont, gx,
-						new Point(0, -40));
 				Animable.drawArrow(gx, 0, -25, current, 0.0);
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-
-//		super(canvas, position, "Resistor");
-//		this.uiComp= new DeviceUI(canvas, "components/resistor.png", 100, 50, this,
-//				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
-//					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-//					@Override
-//					public void animate(Graphics g) {
-//						Graphics2D gx = (Graphics2D) g.create();
-//						gx.translate(50, 25);
-//						gx.setColor(Color.white);
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(resistance, 4) + "Ω",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 30));
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -40));
-////						String dir = "+  -";
-////						if(emf < 0) {
-////							dir = "-  +";
-////						}
-////						Animable.writeCenteredText(dir,
-////								new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -40, null);
-//						gx.dispose();
-//					}
-//				});
-//		uiComp.setLocation(position);
-////		uiComp.setRotation(45);
 	}
 
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-//		parent.addlis
-
-		JLabel restag = new JLabel("Resistance: ");
+		JLabel title = new JLabel("RESISTOR");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
+		
+		JLabel restag = new JLabel("Resistance = " + NumericUtilities.getPrefixed(resistance, 4) + "Ω");
+		restag.setAlignmentX(CENTER_ALIGNMENT);
 		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4);
-
+		LogarithmicSlider resval = new LogarithmicSlider(-9, 6, 4, "Ω");
+		resval.setLogValue(resistance);
 		resval.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-
 				ResistorDescriptor.this.resistance = NumericUtilities.getRounded(resval.getLogValue(), 4);
 				canvas.Render();
+				restag.setText("Resistance = " + NumericUtilities.getPrefixed(resistance, 4) + "Ω");
 			}
 		});
 		parent.add(resval);
-
-//		setDefaultFormat(parent);
 		parent.revalidate();
 		parent.repaint();
-
 	}
 
 	@Override

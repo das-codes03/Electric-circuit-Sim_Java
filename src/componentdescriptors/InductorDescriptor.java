@@ -14,6 +14,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import Backend.api.Components.ACSource;
 import Backend.api.Components.DCSource;
@@ -21,6 +23,7 @@ import Backend.api.Components.Inductor;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
+import uiPackage.LogarithmicSlider;
 import uiPackage.CanvasDrawable;
 
 import uiPackage.RenderingCanvas;
@@ -48,8 +51,6 @@ public class InductorDescriptor extends DeviceUI {
 				gx.setColor(Color.white);
 				Animable.writeCenteredText(NumericUtilities.getPrefixed(inductance, 3) + "H", Animable.globalFont, gx,
 						new Point(0, 20));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
-						Animable.globalFont, gx, new Point(0, -40));
 				Animable.drawArrow(gx, 0, -25, current, 0.0);
 				gx.dispose();
 			}
@@ -61,22 +62,28 @@ public class InductorDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel restag = new JLabel("Resistance: ");
-		parent.add(restag);
-		JTextField resval = new JTextField();
-		resval.setText(Double.toString(inductance));
-		parent.add(resval);
-
-		JLabel lol = new JLabel("Open: ");
-		parent.add(lol);
-		JCheckBox b = new JCheckBox();
-
-		parent.add(b);
-
-		setDefaultFormat(parent);
+		JLabel title = new JLabel("INDUCTOR");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
+		{
+		JLabel indTag = new JLabel("Inductance = " + NumericUtilities.getPrefixed(inductance, 4) + "H");
+		indTag.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(indTag);
+		LogarithmicSlider indVal = new LogarithmicSlider(-9, 6, 4, "H");
+		indVal.setLogValue(inductance);
+		indVal.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				InductorDescriptor.this.inductance = NumericUtilities.getRounded(indVal.getLogValue(), 4);
+				canvas.Render();
+				indTag.setText("Inductance = " + NumericUtilities.getPrefixed(inductance, 4) + "H");
+			}
+		});
+		parent.add(indVal);
+		}
 		parent.revalidate();
 		parent.repaint();
-		System.out.println("here");
 	}
 
 	@Override

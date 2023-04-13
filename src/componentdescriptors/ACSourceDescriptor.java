@@ -52,8 +52,6 @@ public class ACSourceDescriptor extends DeviceUI {
 				gx.setColor(Color.white);
 				Animable.writeCenteredText(NumericUtilities.getPrefixed(amplitude, 4) + "V", Animable.globalFont, gx,
 						new Point(0, 40));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
-						Animable.globalFont, gx, new Point(0, -50));
 				Animable.drawArrow(gx, 0, -33, current, 0.0);
 				gx.dispose();
 			}
@@ -66,52 +64,63 @@ public class ACSourceDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel ampTag = new JLabel("Amplitude: ");
-		parent.add(ampTag);
-		LogarithmicSlider ampval = new LogarithmicSlider(-9, 9, 4);
-		ampval.setLogValue(amplitude);
-		ampval.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-
-				ACSourceDescriptor.this.amplitude = NumericUtilities.getRounded(ampval.getLogValue(), 4);
-				canvas.Render();
-			}
-		});
-		parent.add(ampval);
-
-		JLabel fretag = new JLabel("Frequency: ");
-		parent.add(fretag);
-		LogarithmicSlider freval = new LogarithmicSlider(-9, 9, 4);
-		freval.setLogValue(frequency);
-		freval.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-
-				ACSourceDescriptor.this.frequency = NumericUtilities.getRounded(freval.getLogValue(), 4);
-				canvas.Render();
-			}
-		});
-		parent.add(freval);
-
-		JLabel phtag = new JLabel("Phase: ");
-		parent.add(phtag);
-		JSlider phVal = new JSlider(0, 359);
-		phVal.setValue((int) phase);
-		phVal.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-
-				ACSourceDescriptor.this.phase = phVal.getValue();
-				canvas.Render();
-			}
-		});
-		parent.add(phVal);
-
-		setDefaultFormat(parent);
+		JLabel title = new JLabel("AC Source");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
+		{
+			JLabel ampTag = new JLabel("Amplitude = " + NumericUtilities.getPrefixed(amplitude, 4) + "V");
+			ampTag.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(ampTag);
+			LogarithmicSlider ampVal = new LogarithmicSlider(-9, 6, 4, "V");
+			ampVal.setLogValue(amplitude);
+			ampVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					ACSourceDescriptor.this.amplitude = NumericUtilities.getRounded(ampVal.getLogValue(), 4);
+					canvas.Render();
+					ampTag.setText("Amplitude = " + NumericUtilities.getPrefixed(amplitude, 4) + "V");
+				}
+			});
+			parent.add(ampVal);
+		}
+		{
+			JLabel hzTag = new JLabel("Frequency = " + NumericUtilities.getPrefixed(frequency, 4) + "Hz");
+			hzTag.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(hzTag);
+			LogarithmicSlider hzVal = new LogarithmicSlider(-9, 6, 4, "Hz");
+			hzVal.setLogValue(frequency);
+			hzVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					ACSourceDescriptor.this.frequency = NumericUtilities.getRounded(hzVal.getLogValue(), 4);
+					canvas.Render();
+					hzTag.setText("Frequency = " + NumericUtilities.getPrefixed(frequency, 4) + "Hz");
+				}
+			});
+			parent.add(hzVal);
+		}
+		{
+			JLabel phTag = new JLabel("Phase = " + (int)phase + "°");
+			phTag.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(phTag);
+			JSlider phVal = new JSlider(0,360);
+			phVal.setValue((int)phase);
+			phVal.setPaintTicks(true);
+			phVal.setMajorTickSpacing(45);
+			phVal.setMinorTickSpacing(15);
+			phVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					ACSourceDescriptor.this.phase = phVal.getValue();
+					canvas.Render();
+					phTag.setText("Phase = " + (int)phase + "°");
+				}
+			});
+			parent.add(phVal);
+		}
 		parent.revalidate();
 		parent.repaint();
-		System.out.println("here");
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package utilities;
 import java.awt.Point;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 
 public class NumericUtilities {
@@ -22,13 +23,12 @@ public class NumericUtilities {
 		unitMap.put(-15, "f");
 		unitMap.put(-18, "a");
 	}
-	private static final int MIN_EXP = -18;
-	private static final int MAX_EXP = 18;
+	private static final int MIN_EXP = -15;
+	private static final int MAX_EXP = 15;
+
 	public static double getRounded(double d, int sigDigits) {
-		if (Math.abs(d) < Math.pow(10, MIN_EXP))
+		if (d == 0)
 			return 0;
-		if(Math.abs(d) > Math.pow(10, MAX_EXP))
-			return d < 0? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
 		var sign = Math.signum(d);
 		d = Math.abs(d);
 		int k = (int) Math.log10(d);
@@ -39,18 +39,33 @@ public class NumericUtilities {
 	}
 
 	public static String getPrefixed(double val, int sigDigits) {
+		return getPrefixed(val, sigDigits, false);
+	}
+
+	public static String getPrefixed(double val, int sigDigits, boolean clipZeros) {
 		String str = "";
 		int x = 0;
+		val = getRounded(val, sigDigits);
+		if (Math.abs(val) < Math.pow(10, MIN_EXP))
+			val = 0;
+		if (Math.abs(val) > Math.pow(10, MAX_EXP))
+			val = (val < 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
+
 		var sign = Math.signum(val);
 		val = Math.abs(val);
 		if (val != 0)
 			x = 3 * ((int) (Math.log10(val / (val < 1 ? 999 : 1)) / 3));
 		val /= Math.pow(10, x);
-		val = getRounded(val, sigDigits);
-		str = String.format("%.30f", val);
-		var temp = str.substring(0, Math.min(str.length() - 1, sigDigits + 1));
-		for (int i = temp.length(); i <= sigDigits; ++i) {
-			temp += '0';
+
+		str = new DecimalFormat("0.######").format(val);
+		var temp = str.substring(0, Math.min(str.length(), sigDigits + 1));
+//		if (!clipZeros)
+//			for (int i = temp.length(); i <= sigDigits; ++i) {
+//				temp += '0';
+//			}
+
+		if (temp.endsWith(".")) {
+			temp = temp.substring(0, temp.length() - 1);
 		}
 		return (sign < 0 ? "-" : "") + temp + " " + unitMap.get(x);
 	}

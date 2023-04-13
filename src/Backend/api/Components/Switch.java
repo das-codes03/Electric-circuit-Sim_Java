@@ -23,10 +23,9 @@ public class Switch extends Component {
 		super.updateState(t, dt);
 		boolean closed = (boolean) properties.get(CLOSED);
 		if(closed) {
-			segments[0].setResistance(0);
-			segments[0].setCapacitance(0);
+			segments[0].setCapacitance(Double.POSITIVE_INFINITY);
 		}else {
-			segments[0].setCapacitance(10e-15);
+			segments[0].setCapacitance(10e-20);
 		}
 //		segments[0].setResistance( (double) properties.get(CLOSED));
 		var current = segments[0].getCurrent();

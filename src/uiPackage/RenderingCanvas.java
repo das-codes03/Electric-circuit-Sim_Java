@@ -383,6 +383,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		case NONE: {
 			if (t == null) {
 				mw.descriptionPanel.removeAll();
+				mw.descriptionPanel.getParent().revalidate();
 				mw.descriptionPanel.repaint();
 			} else {
 				if (t instanceof NodeUI) {

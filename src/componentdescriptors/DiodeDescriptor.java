@@ -30,34 +30,38 @@ public class DiodeDescriptor extends DeviceUI {
 
 	private double current = 0;
 	private DeviceUI uiComp;
+
 	public DiodeDescriptor(RenderingCanvas canvas) throws IOException {
-		this(canvas, new Point(0,0));
+		this(canvas, new Point(0, 0));
 	}
+
 	public DiodeDescriptor(RenderingCanvas canvas, Point position) throws IOException {
-		
-		super(canvas, "components/diode.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) }, "Bulb");
+
+		super(canvas, "components/diode.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) }, "Diode");
 		addAnimator(new Animable() {
-			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(50, 50);
 				gx.setColor(Color.white);
 
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-//				String dir = "+  -";
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
+						Animable.globalFont, gx, new Point(0, -50));
+				Animable.drawArrow(gx, 0, -25, current, 0.0);
+//				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
+//						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
+////				String dir = "+  -";
 //				if(emf < 0) {
 //					dir = "-  +";
 //				}
 //				Animable.writeCenteredText(dir,
 //						new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
+//				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-		
+
 //		super(canvas, position, "Diode");
 //		this.uiComp= new DeviceUI(canvas, "components/diode.png", 100, 100, this,
 //				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
@@ -98,11 +102,13 @@ public class DiodeDescriptor extends DeviceUI {
 		parent.repaint();
 		System.out.println("here");
 	}
+
 	@Override
 	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		current =(double) data.get(ACSource.CURRENT);
+		current = (double) data.get(ACSource.CURRENT);
 	}
+
 	@Override
 	public void revalidateProperties(SimulationEvent evt) {
 //		try {

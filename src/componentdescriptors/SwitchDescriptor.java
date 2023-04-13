@@ -20,12 +20,14 @@ import Backend.api.Components.Switch;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
+import uiPackage.LogarithmicSlider;
 import uiPackage.RenderingCanvas;
 import utilities.NumericUtilities;
 
 public class SwitchDescriptor extends DeviceUI {
 	private boolean closed = true;
 	private double current = 0;
+
 	public SwitchDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
@@ -49,8 +51,6 @@ public class SwitchDescriptor extends DeviceUI {
 					gx.fillOval(15, -21, 8, 8);
 				}
 				if (closed) {
-					Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-							new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -30));
 					Animable.drawArrow(gx, 0, -15, current, 0.0);
 				}
 				gx.dispose();
@@ -62,26 +62,27 @@ public class SwitchDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
+		JLabel title = new JLabel("SWITCH");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
+		{
 
-		JLabel lol = new JLabel("Open: ");
-		parent.add(lol);
-		JCheckBox b = new JCheckBox();
-		b.setSelected(closed);
-		b.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				SwitchDescriptor.this.closed = b.isSelected();
-				canvas.Render();
-			}
-		});
-
-		parent.add(b);
-
-		setDefaultFormat(parent);
+			JCheckBox closedVal = new JCheckBox("Switch is " + (closed?"closed" : "open"));
+			closedVal.setAlignmentX(CENTER_ALIGNMENT);
+			closedVal.setSelected(closed);
+			closedVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					SwitchDescriptor.this.closed = closedVal.isSelected();
+					canvas.Render();
+					closedVal.setText("Switch is " + (closed?"closed" : "open"));
+				}
+			});
+			parent.add(closedVal);
+		}
 		parent.revalidate();
 		parent.repaint();
-		System.out.println("here");
 	}
 
 	@Override

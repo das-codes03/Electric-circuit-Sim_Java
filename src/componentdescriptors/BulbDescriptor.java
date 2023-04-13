@@ -23,7 +23,7 @@ import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
 
 public class BulbDescriptor extends DeviceUI {
-	private Color color = new Color(0, 255, 0);
+	private Color color = new Color(255, 214, 170);
 	private double intensity = 0;
 	private double current = 0;
 	private double ratedVoltage = 1;
@@ -41,7 +41,7 @@ public class BulbDescriptor extends DeviceUI {
 			private void drawGlow(Graphics2D g) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(-glow.getWidth() / 2, -glow.getHeight() / 2);
-				gx.drawImage(DeviceUI.applyAldebo(glow, color, intensity), -2, -2, null);
+				gx.drawImage(ResourceManager.applyAldebo(glow, color, intensity), -2, -2, null);
 				gx.dispose();
 			}
 
@@ -55,8 +55,6 @@ public class BulbDescriptor extends DeviceUI {
 						NumericUtilities.getPrefixed(ratedWattage, 3) + "W @"
 								+ NumericUtilities.getPrefixed(ratedVoltage, 3) + "V",
 						Animable.globalFont, gx, new Point(0, 40));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
-						Animable.globalFont, gx, new Point(0, -50));
 				Animable.drawArrow(gx, 0, -33, current, 0.0);
 				gx.dispose();
 			}
@@ -67,22 +65,45 @@ public class BulbDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel restag = new JLabel("Resistance: ");
-		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4);
+		JLabel title = new JLabel("BULB");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
 
-		resval.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-
-				BulbDescriptor.this.ratedWattage = NumericUtilities.getRounded(resval.getLogValue(), 4);
-				canvas.Render();
-			}
-		});
-		parent.add(resval);
+		{
+			JLabel wattLbl = new JLabel("Power = " + NumericUtilities.getPrefixed(ratedWattage, 4) + "W");
+			wattLbl.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(wattLbl);
+			LogarithmicSlider wattVal = new LogarithmicSlider(-4, 4, 4, "W");
+			wattVal.setLogValue(ratedWattage);
+			wattVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					BulbDescriptor.this.ratedWattage = NumericUtilities.getRounded(wattVal.getLogValue(), 4);
+					canvas.Render();
+					wattLbl.setText("Power = " + NumericUtilities.getPrefixed(ratedWattage, 4) + "W");
+				}
+			});
+			parent.add(wattVal);
+		}
+		{
+			JLabel voltLbl = new JLabel("Voltage = " + NumericUtilities.getPrefixed(ratedVoltage, 4) + "V");
+			voltLbl.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(voltLbl);
+			LogarithmicSlider voltVal = new LogarithmicSlider(-4, 4, 4, "V");
+			voltVal.setLogValue(ratedVoltage);
+			voltVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					BulbDescriptor.this.ratedVoltage = NumericUtilities.getRounded(voltVal.getLogValue(), 4);
+					canvas.Render();
+					voltLbl.setText("Voltage = " + NumericUtilities.getPrefixed(ratedVoltage, 4) + "V");
+				}
+			});
+			parent.add(voltVal);
+		}
 		parent.revalidate();
 		parent.repaint();
-		System.out.println("here");
 	}
 
 	@Override

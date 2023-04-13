@@ -1,5 +1,6 @@
 package uiPackage;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -9,20 +10,22 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import utilities.NumericUtilities;
+
 public interface Animable {
 	abstract void animate(Graphics g);
 
 	public static final Font globalFont = new Font(Font.SANS_SERIF, Font.PLAIN, 15);
 
 	public static void drawArrow(Graphics2D g, int x, int y, double magnitude, double rotation) {
-		BufferedImage arrow = null;
 
-		arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-
+		BufferedImage arrow =ResourceManager.applyAldebo(ResourceManager.loadImage("arrow.png", 0).get(0), Color.green, 1);
 		Graphics2D gx = (Graphics2D) g.create();
+		gx.setColor(Color.cyan);
 		gx.translate(x, y);
-
 		gx.rotate(Math.toRadians(rotation));
+		Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(magnitude), 4) + "A", Animable.globalFont, gx,
+				new Point(0, -15));
 		gx.scale(Math.signum(magnitude), 1);
 		Image scaled = arrow.getScaledInstance(60, 30, Image.SCALE_FAST);
 		gx.translate(-scaled.getWidth(null) / 2, -scaled.getHeight(null) / 2);

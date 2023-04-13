@@ -12,19 +12,26 @@ import java.util.HashMap;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
+import Backend.api.Components.Transformer;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
+import uiPackage.LogarithmicSlider;
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
+import utilities.NumericUtilities;
 
 public class TransformerDescriptor extends DeviceUI {
-	private int primary = 12;
-	private int secondary = 220;
+	private int primary = 100;
+	private int secondary = 1000;
 	private double primarycurrent = 0;
 	private double secondarycurrent = 0;
+	private double primInductance = 0.1;
 	private DeviceUI uiComp;
 
 	public TransformerDescriptor(RenderingCanvas canvas) throws IOException {
@@ -32,9 +39,10 @@ public class TransformerDescriptor extends DeviceUI {
 	}
 
 	public TransformerDescriptor(RenderingCanvas canvas, Point position) throws IOException {
-		
 
-		super(canvas, "components/transformer.png", 200, 200, new Point[] { new Point(95, -87), new Point(-95, -87), new Point(95, 87), new Point(-95, 87) }, "Transformer");
+		super(canvas, "components/transformer.png", 200, 200,
+				new Point[] { new Point(-95, -87), new Point(-95, 87), new Point(95, 87), new Point(95, -87) },
+				"Transformer");
 		addAnimator(new Animable() {
 			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
 
@@ -42,20 +50,17 @@ public class TransformerDescriptor extends DeviceUI {
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(100, 100);
-				gx.setColor(Color.white);
-//				Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
-//						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
-//				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-//						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
+				gx.setColor(Color.orange);
+				
+				Animable.drawArrow(gx, -70,0,primarycurrent, 270);
+				Animable.drawArrow(gx, 70,0,secondarycurrent, 90);
 				gx.rotate(Math.toRadians(90));
-				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -25, -100, null);
-				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -25, 70, null);
-
+				Animable.writeCenteredText(primary + ":" + secondary,globalFont, gx, new Point(0,0));
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-		
+
 //		super(canvas, position, "Transformer");
 //		this.uiComp = new DeviceUI(canvas, "components/transformer.png", 200, 200, this,
 //				new Point[] { new Point(95, -87), new Point(-95, -87), new Point(95, 87), new Point(-95, 87) }, new Animable() {
@@ -83,34 +88,79 @@ public class TransformerDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel restag = new JLabel("Resistance: ");
-		parent.add(restag);
-		JTextField resval = new JTextField();
-		resval.setText(Integer.toString(primary));
-		parent.add(resval);
-
-		JLabel lol = new JLabel("Open: ");
-		parent.add(lol);
-		JCheckBox b = new JCheckBox();
-
-		parent.add(b);
-
-		setDefaultFormat(parent);
+		JLabel title = new JLabel("TRANSFORMER");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
+		{
+			JLabel primTag = new JLabel("Primary turns = " + primary);
+			primTag.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(primTag);
+			JSlider primVal = new JSlider(1, 1000);
+			primVal.setValue(primary);
+			primVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					TransformerDescriptor.this.primary = primVal.getValue();
+					canvas.Render();
+					primTag.setText("Primary turns = " + primary);
+				}
+			});
+			parent.add(primVal);
+		}
+		{
+			JLabel secTag = new JLabel("Secondary turns = " + secondary);
+			secTag.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(secTag);
+			JSlider secVal = new JSlider(1, 1000);
+			secVal.setValue(secondary);
+			secVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					TransformerDescriptor.this.secondary = secVal.getValue();
+					canvas.Render();
+					secTag.setText("Secondary turns = " + secondary);
+				}
+			});
+			parent.add(secVal);
+		}
+		{
+			JLabel indTag = new JLabel("Primary inductance = " + NumericUtilities.getPrefixed(primInductance, 4) + "H");
+			indTag.setAlignmentX(CENTER_ALIGNMENT);
+			parent.add(indTag);
+			LogarithmicSlider indVal = new LogarithmicSlider(-9, 6, 4, "H");
+			indVal.setLogValue(primInductance);
+			indVal.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					TransformerDescriptor.this.primInductance = NumericUtilities.getRounded(indVal.getLogValue(), 4);
+					canvas.Render();
+					indTag.setText("Primary inductance = " + NumericUtilities.getPrefixed(primInductance, 4) + "H");
+				}
+			});
+			parent.add(indVal);
+		}
 		parent.revalidate();
 		parent.repaint();
-		System.out.println("here");
 	}
+
 	@Override
 	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-//		current =(double) data.get(ACSource.CURRENT);
+		primarycurrent =(double) data.get(Transformer.PRIMARY_CURRENT);
+		secondarycurrent =(double) data.get(Transformer.SECONDARY_CURRENT);
+		
 	}
+
 	@Override
 	public void revalidateProperties(SimulationEvent evt) {
-//		try {
-//			evt.sim.setProperty(getID(), Inductor.INDUCTANCE, inductance);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+		try {
+			evt.sim.setProperty(getID(), Transformer.PRIMARY_WINDINGS, primary);
+			evt.sim.setProperty(getID(), Transformer.SECONDARY_WINDINGS, secondary);
+			evt.sim.setProperty(getID(), Transformer.PRIMARY_INDUCTANCE, primInductance);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -4,29 +4,22 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import Backend.api.Components.ACSource;
 import Backend.api.Components.DCSource;
-import Backend.api.Components.Resistor;
-import frontend.SimUiManager;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
 import uiPackage.LogarithmicSlider;
-import uiPackage.CanvasDrawable;
-
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
@@ -55,8 +48,6 @@ public class DCSourceDescriptor extends DeviceUI {
 				Animable.writeCenteredText(
 						NumericUtilities.getPrefixed(emf, 4) + "v",
 						Animable.globalFont, gx, new Point(0, 40));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
-						Animable.globalFont, gx, new Point(0, -50));
 				Animable.drawArrow(gx, 0, -33, current, 0.0);
 				String dir = "+  -";
 				if (emf < 0) {
@@ -73,24 +64,28 @@ public class DCSourceDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel restag = new JLabel("Resistance: ");
-		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4);
-
-		resval.addChangeListener(new ChangeListener() {
+		JLabel title = new JLabel("DC Source");
+		title.setForeground(Color.green);
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(title);
+		{
+		JLabel emfTag = new JLabel("Potential = " + NumericUtilities.getPrefixed(emf, 4) + "V");
+		emfTag.setAlignmentX(CENTER_ALIGNMENT);
+		parent.add(emfTag);
+		LogarithmicSlider emfVal = new LogarithmicSlider(-8, 8, 4, "V");
+		emfVal.setLogValue(emf);
+		emfVal.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-
-				DCSourceDescriptor.this.emf = NumericUtilities.getRounded(resval.getLogValue(), 4);
+				DCSourceDescriptor.this.emf = NumericUtilities.getRounded(emfVal.getLogValue(), 4);
 				canvas.Render();
+				emfTag.setText("Potential = " + NumericUtilities.getPrefixed(emf, 4) + "V");
 			}
 		});
-		parent.add(resval);
-
-		setDefaultFormat(parent);
+		parent.add(emfVal);
+		}
 		parent.revalidate();
 		parent.repaint();
-		System.out.println("here");
 	}
 
 	@Override

@@ -4,6 +4,8 @@ import java.awt.Color;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
@@ -183,7 +185,7 @@ public class MainWindow extends JFrame implements ActionListener {
 		lbl_Simulation_Speed.setVerticalAlignment(SwingConstants.TOP);
 		simSpeedPnl.add(lbl_Simulation_Speed);
 
-		slider = new LogarithmicSlider(-9, 1, 3);
+		slider = new LogarithmicSlider(-9, 1, 3, "s");
 
 		slider.setPaintTicks(true);
 		simSpeedPnl.add(slider);
@@ -198,7 +200,17 @@ public class MainWindow extends JFrame implements ActionListener {
 		runningLabel.setForeground(Color.GREEN);
 		runningLabel.setAlignmentX(0.5f);
 		simSpeedPnl.add(runningLabel);
+		JPanel descriptionParent = new JPanel();
+		descriptionParent.setMinimumSize(new Dimension(100, 100));
+		toolboxViewport.add(descriptionParent);
+		descriptionParent.setLayout(new GridLayout());
+		descriptionParent.setBorder(new BevelBorder(BevelBorder.LOWERED));
 
+		descriptionPanel = new JPanel();
+		descriptionPanel.setMinimumSize(new Dimension(0, 100));
+		descriptionParent.add(descriptionPanel);
+		descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
+		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		toolboxViewport.add(tabbedPane);
 		JPanel devicesPanel = new JPanel();
@@ -235,18 +247,7 @@ public class MainWindow extends JFrame implements ActionListener {
 		teleScreen = new TelemetryScreen(telemetryPanel);
 		teleScreen.updateValues(0.0, 0.0, 0.0, 0.0, 0.0, runStatus.STOPPED);
 
-		JPanel descriptionParent = new JPanel();
-		descriptionParent.setMinimumSize(new Dimension(100, 100));
-		toolboxViewport.add(descriptionParent);
-		descriptionParent.setLayout(new BoxLayout(descriptionParent, BoxLayout.Y_AXIS));
-
-		JLabel lbl_Description = new JLabel("Description");
-		lbl_Description.setAlignmentX(Component.CENTER_ALIGNMENT);
-		descriptionParent.add(lbl_Description);
-		descriptionPanel = new JPanel();
-		descriptionPanel.setMinimumSize(new Dimension(0, 100));
-		descriptionParent.add(descriptionPanel);
-		descriptionPanel.setLayout(new GridLayout(0, 2, 0, 0));
+		
 		if (tree.getCellRenderer() instanceof DefaultTreeCellRenderer) {
 			final DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) (tree.getCellRenderer());
 			renderer.setBackgroundNonSelectionColor(Color.black);

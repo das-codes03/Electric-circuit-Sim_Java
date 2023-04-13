@@ -28,7 +28,6 @@ public class Circuit {
 		private boolean visited;
 		private int depth;
 		private Segment backtrackSeg;
-
 		private Node() {
 			visited = false;
 			depth = 0;
