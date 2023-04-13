@@ -18,7 +18,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.simulator.components.ACSource;
+import Backend.api.Components.ACSource;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
@@ -40,25 +40,26 @@ public class ACSourceDescriptor extends DeviceUI {
 	}
 
 	public ACSourceDescriptor(RenderingCanvas canvas, Point position) throws IOException {
-		super(canvas, "components/acsource.png", 100, 100, 
-		new Point[] { new Point(45, 0), new Point(-45, 0) 
-		}, "ACSource");
+		super(canvas, "components/acsource.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) },
+				"ACSource");
 		addAnimator(new Animable() {
 			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
+
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
-				gx.translate(50, 50);
+				gx.translate(getWidth() / 2, getHeight() / 2);
 				gx.setColor(Color.white);
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(amplitude, 4) + "V",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(amplitude, 4) + "V", Animable.globalFont, gx,
+						new Point(0, 40));
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
+						Animable.globalFont, gx, new Point(0, -50));
+				Animable.drawArrow(gx, 0, -33, current, 0.0);
 				gx.dispose();
-			}});
+			}
+		});
 
-	this.setLocation(position);
+		this.setLocation(position);
 
 	}
 
@@ -67,47 +68,45 @@ public class ACSourceDescriptor extends DeviceUI {
 		parent.removeAll();
 		JLabel ampTag = new JLabel("Amplitude: ");
 		parent.add(ampTag);
-		LogarithmicSlider ampval = new LogarithmicSlider(-9,9,4);
+		LogarithmicSlider ampval = new LogarithmicSlider(-9, 9, 4);
 		ampval.setLogValue(amplitude);
 		ampval.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 
-				ACSourceDescriptor.this.amplitude= NumericUtilities.getRounded(ampval.getLogValue(),4);
+				ACSourceDescriptor.this.amplitude = NumericUtilities.getRounded(ampval.getLogValue(), 4);
 				canvas.Render();
 			}
 		});
 		parent.add(ampval);
-		
 
 		JLabel fretag = new JLabel("Frequency: ");
 		parent.add(fretag);
-		LogarithmicSlider freval = new LogarithmicSlider(-9,9,4);
+		LogarithmicSlider freval = new LogarithmicSlider(-9, 9, 4);
 		freval.setLogValue(frequency);
 		freval.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 
-				ACSourceDescriptor.this.frequency= NumericUtilities.getRounded(freval.getLogValue(),4);
+				ACSourceDescriptor.this.frequency = NumericUtilities.getRounded(freval.getLogValue(), 4);
 				canvas.Render();
 			}
 		});
 		parent.add(freval);
-		
+
 		JLabel phtag = new JLabel("Phase: ");
 		parent.add(phtag);
-		JSlider phVal = new JSlider(0,359);
+		JSlider phVal = new JSlider(0, 359);
 		phVal.setValue((int) phase);
 		phVal.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 
-				ACSourceDescriptor.this.phase= phVal.getValue();
+				ACSourceDescriptor.this.phase = phVal.getValue();
 				canvas.Render();
 			}
 		});
 		parent.add(phVal);
-
 
 		setDefaultFormat(parent);
 		parent.revalidate();
@@ -118,7 +117,7 @@ public class ACSourceDescriptor extends DeviceUI {
 	@Override
 	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		current =(double) data.get(ACSource.CURRENT);
+		current = (double) data.get(ACSource.CURRENT);
 	}
 
 	@Override

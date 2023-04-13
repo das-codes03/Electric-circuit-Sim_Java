@@ -9,8 +9,8 @@ import uiPackage.RenderingCanvas;
 import uiPackage.Wire;
 
 public class SimulationEvent implements Runnable {
-	public SimulationEvent(ArrayList<DeviceUI> devices, ArrayList<Wire> wires, RenderingCanvas canvas) {
-		this.canvas = canvas;
+	public SimulationEvent(ArrayList<DeviceUI> devices, ArrayList<Wire> wires) {
+
 		this.devices = devices;
 		this.wires = wires;
 		sim = new SimulatorAPI();
@@ -36,7 +36,7 @@ public class SimulationEvent implements Runnable {
 	private ArrayList<DeviceUI> devices;
 	private ArrayList<Wire> wires;
 	public SimulatorAPI sim;
-	private RenderingCanvas canvas;
+//	private RenderingCanvas canvas;
 	public boolean running = true;
 
 	@Override
@@ -64,7 +64,7 @@ public class SimulationEvent implements Runnable {
 				}
 			}
 			if (flag)
-				canvas.Render();
+				SimUiManager.Render();
 			var t2 = System.nanoTime();
 
 			if (t2 - t1 < stepMS * 1000000) {

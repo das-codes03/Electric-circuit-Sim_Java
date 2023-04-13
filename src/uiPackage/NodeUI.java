@@ -8,6 +8,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
 
 import uiPackage.RenderingCanvas.currentMode;
 
@@ -21,6 +22,7 @@ public class NodeUI extends CanvasDrawable {
 	public final DeviceUI parentDevice;
 	private final int nodeIndex;
 	private Color nodeColor = Color.white;
+	private HashSet<Wire> incidentWires;
 
 	public void setNodeColor(Color c) {
 		nodeColor = c;
@@ -30,11 +32,24 @@ public class NodeUI extends CanvasDrawable {
 		radius = r;
 		getTransformedBounds();
 	}
+
 	public NodeUI(RenderingCanvas canvas, int radius, DeviceUI parent, int nodeIndex) {
 		this(new Point(), canvas, radius, parent, nodeIndex);
 	}
+
 	public NodeUI(RenderingCanvas canvas, int radius) {
 		this(new Point(), canvas, radius, null, 0);
+	}
+
+	public NodeUI(Point p, RenderingCanvas canvas) {
+		this(p, canvas, 5, null, 0);
+	}
+
+	@Override
+	public Point getLocationOnScreen() {
+		// TODO Auto-generated method stub
+//	
+		return null;
 	}
 
 	@Override
@@ -55,10 +70,15 @@ public class NodeUI extends CanvasDrawable {
 		this.radius = radius;
 		this.parentDevice = parent;
 		this.nodeIndex = nodeIndex;
+		this.incidentWires = new HashSet<>();
 		setSize(radius * 2, radius * 2);
 		setLocation(p);
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
+	}
+
+	public void includeWire(Wire w) {
+		this.incidentWires.add(w);
 	}
 
 	@Override
@@ -86,7 +106,7 @@ public class NodeUI extends CanvasDrawable {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("Node clicked");
+//		System.out.println("Node clicked");
 		if (canvas.mode != currentMode.MAKE_WIRE) {
 			canvas.mode = currentMode.MAKE_WIRE;
 

@@ -17,9 +17,9 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.simulator.components.ACSource;
-import Backend.simulator.components.DCSource;
-import Backend.simulator.components.Resistor;
+import Backend.api.Components.ACSource;
+import Backend.api.Components.DCSource;
+import Backend.api.Components.Resistor;
 import frontend.SimUiManager;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -42,54 +42,32 @@ public class DCSourceDescriptor extends DeviceUI {
 
 	public DCSourceDescriptor(RenderingCanvas canvas, Point position) throws IOException {
 
-		super(canvas, "components/dcsource.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) }, "DCSource");
+		super(canvas, "components/dcsource.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) },
+				"DCSource");
 		addAnimator(new Animable() {
 			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
 
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
-				gx.translate(50, 50);
+				gx.translate(getWidth() / 2, getHeight() / 2);
 				gx.setColor(Color.white);
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
+				Animable.writeCenteredText(
+						NumericUtilities.getPrefixed(emf, 4) + "v",
+						Animable.globalFont, gx, new Point(0, 40));
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
+						Animable.globalFont, gx, new Point(0, -50));
+				Animable.drawArrow(gx, 0, -33, current, 0.0);
 				String dir = "+  -";
 				if (emf < 0) {
 					dir = "-  +";
 				}
 				Animable.writeCenteredText(dir, new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
+				
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-
-//		super(canvas, position, "DCSource");
-//		this.uiComp = new DeviceUI(canvas, "components/dcsource.png", 100, 100, this,
-//				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
-//					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-//					@Override
-//					public void animate(Graphics g) {
-//						Graphics2D gx = (Graphics2D) g.create();
-//						gx.translate(50, 50);
-//						gx.setColor(Color.white);
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-//						String dir = "+  -";
-//						if(emf < 0) {
-//							dir = "-  +";
-//						}
-//						Animable.writeCenteredText(dir,
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
-//						gx.dispose();
-//					}
-//				});
-//		uiComp.setLocation(position);
 	}
 
 	@Override
@@ -97,13 +75,13 @@ public class DCSourceDescriptor extends DeviceUI {
 		parent.removeAll();
 		JLabel restag = new JLabel("Resistance: ");
 		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9,9,4);
+		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4);
 
 		resval.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 
-				DCSourceDescriptor.this.emf= NumericUtilities.getRounded(resval.getLogValue(),4);
+				DCSourceDescriptor.this.emf = NumericUtilities.getRounded(resval.getLogValue(), 4);
 				canvas.Render();
 			}
 		});
@@ -118,8 +96,9 @@ public class DCSourceDescriptor extends DeviceUI {
 	@Override
 	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		current =(double) data.get(ACSource.CURRENT);
+		current = (double) data.get(ACSource.CURRENT);
 	}
+
 	@Override
 	public void revalidateProperties(SimulationEvent evt) {
 		try {

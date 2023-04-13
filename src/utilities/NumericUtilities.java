@@ -1,5 +1,6 @@
 package utilities;
 
+import java.awt.Point;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.HashMap;
@@ -21,10 +22,13 @@ public class NumericUtilities {
 		unitMap.put(-15, "f");
 		unitMap.put(-18, "a");
 	}
-
+	private static final int MIN_EXP = -18;
+	private static final int MAX_EXP = 18;
 	public static double getRounded(double d, int sigDigits) {
-		if (d == 0)
+		if (Math.abs(d) < Math.pow(10, MIN_EXP))
 			return 0;
+		if(Math.abs(d) > Math.pow(10, MAX_EXP))
+			return d < 0? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
 		var sign = Math.signum(d);
 		d = Math.abs(d);
 		int k = (int) Math.log10(d);
@@ -49,5 +53,9 @@ public class NumericUtilities {
 			temp += '0';
 		}
 		return (sign < 0 ? "-" : "") + temp + " " + unitMap.get(x);
+	}
+
+	public static Point addPoint(Point a, Point b) {
+		return new Point(a.x + b.x, a.y + b.y);
 	}
 }

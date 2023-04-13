@@ -11,17 +11,17 @@ import java.io.IOException;
 
 public interface Animable {
 	abstract void animate(Graphics g);
+
 	public static final Font globalFont = new Font(Font.SANS_SERIF, Font.PLAIN, 15);
+
 	public static void drawArrow(Graphics2D g, int x, int y, double magnitude, double rotation) {
 		BufferedImage arrow = null;
-		try {
-			arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
+		arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
+
 		Graphics2D gx = (Graphics2D) g.create();
 		gx.translate(x, y);
-		
+
 		gx.rotate(Math.toRadians(rotation));
 		gx.scale(Math.signum(magnitude), 1);
 		Image scaled = arrow.getScaledInstance(60, 30, Image.SCALE_FAST);

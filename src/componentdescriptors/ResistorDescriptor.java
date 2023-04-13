@@ -21,9 +21,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import Backend.simulator.components.ACSource;
-import Backend.simulator.components.Inductor;
-import Backend.simulator.components.Resistor;
+import Backend.api.Components.ACSource;
+import Backend.api.Components.Inductor;
+import Backend.api.Components.Resistor;
 import frontend.SimUiManager;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -39,36 +39,32 @@ public class ResistorDescriptor extends DeviceUI {
 	private double resistance = 0.1d;
 	private double current = 0;
 	private DeviceUI uiComp;
+
 	public ResistorDescriptor(RenderingCanvas canvas) throws IOException {
-		this(canvas, new Point(0,0));
+		this(canvas, new Point(0, 0));
 	}
+
 	public ResistorDescriptor(RenderingCanvas canvas, Point position) throws IOException {
-		
-		super(canvas, "components/resistor.png", 100, 50, new Point[] { new Point(45, 0), new Point(-45, 0) }, "Resistor");
+
+		super(canvas, "components/resistor.png", 100, 50, new Point[] { new Point(45, 0), new Point(-45, 0) },
+				"Resistor");
 		addAnimator(new Animable() {
-			
+
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
-				gx.translate(getWidth()/2, getHeight()/2);
+				gx.translate(getWidth() / 2, getHeight() / 2);
 				gx.setColor(Color.white);
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(resistance, 4) + "Ω",
-						Animable.globalFont, gx, new Point(0, 30));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-						Animable.globalFont, gx, new Point(0, -40));
-//				String dir = "+  -";
-//				if(emf < 0) {
-//					dir = "-  +";
-//				}
-//				Animable.writeCenteredText(dir,
-//						new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-//				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -40, null);
-				Animable.drawArrow(gx,0,-25,current,0.0);
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(resistance, 4) + "Ω", Animable.globalFont, gx,
+						new Point(0, 30));
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A", Animable.globalFont, gx,
+						new Point(0, -40));
+				Animable.drawArrow(gx, 0, -25, current, 0.0);
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-		
+
 //		super(canvas, position, "Resistor");
 //		this.uiComp= new DeviceUI(canvas, "components/resistor.png", 100, 50, this,
 //				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
@@ -100,32 +96,33 @@ public class ResistorDescriptor extends DeviceUI {
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
 //		parent.addlis
-		
+
 		JLabel restag = new JLabel("Resistance: ");
 		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9,9,4);
+		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4);
 
 		resval.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 
-				ResistorDescriptor.this.resistance= NumericUtilities.getRounded(resval.getLogValue(),4);
+				ResistorDescriptor.this.resistance = NumericUtilities.getRounded(resval.getLogValue(), 4);
 				canvas.Render();
 			}
 		});
 		parent.add(resval);
 
-		
 //		setDefaultFormat(parent);
 		parent.revalidate();
 		parent.repaint();
 
 	}
+
 	@Override
 	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		current =(double) data.get(ACSource.CURRENT);
+		current = (double) data.get(ACSource.CURRENT);
 	}
+
 	@Override
 	public void revalidateProperties(SimulationEvent evt) {
 		try {

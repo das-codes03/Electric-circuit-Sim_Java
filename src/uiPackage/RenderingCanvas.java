@@ -78,7 +78,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		return local;
 	}
 
-	// TODO: convert to single hashmap
 	/** Data structure to store components in grid. */
 	class ComponentMapping {
 		class MapBox {
@@ -109,14 +108,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		private final int boxSize;
 		private final HashMap<Point, MapBox> mMap;
 
-//		private MapBox getBox(int x, int y) {
-//			var temp = mMap.get(x);
-//			if (temp != null)
-//				return temp.get(y);
-//			else
-//				return null;
-//		}
-
 		public void remove(CanvasDrawable comp) {
 			try {
 				for (var b : comp.gridLocations) {
@@ -133,11 +124,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			MapBox box;
 			Point pt = new Point(x, y);
 			if ((box = mMap.get(pt)) == null) {
-//				if (!mMap.containsKey(x)) {
-//					m = mMap.put(x, new HashMap<Integer, MapBox>());
-//				}
-//				m = mMap.get(x);
-//				m.put(y, new MapBox(x, y));
 				mMap.put(pt, new MapBox(x, y));
 				box = mMap.get(pt);
 			}
@@ -237,14 +223,15 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			if (s == null)
 				return null;
 			for (var c : s.components) {
-				for (var bnd : c.regions) {
-					if (bnd.contains(localPoint))
-						if (found == null) {
-							found = c;
-						} else if (found.compareTo(c) == 1) {
-							found = c;
-						}
-				}
+				if (c.isVisible())
+					for (var bnd : c.regions) {
+						if (bnd.contains(localPoint))
+							if (found == null) {
+								found = c;
+							} else if (found.compareTo(c) == 1) {
+								found = c;
+							}
+					}
 			}
 			return found;
 		}
@@ -263,12 +250,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	}
 
 	public void zoom(Point focus, double targetZoom) {
-//TODO: ZOOM yet to implement
 		Point center = screenToLocalPoint(focus);
 
 		var relX = (center.x - camTransform.getTranslateX()) / camTransform.getScaleX();
 		var relY = (center.y - camTransform.getTranslateY()) / camTransform.getScaleY();
-//		var ratio = camTransform.getScaleX()
 		camTransform.translate(-relX, -relY);
 		camTransform.scale(targetZoom, targetZoom);
 		camTransform.translate(relX, relY);
@@ -292,14 +277,13 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		this.addMouseMotionListener(this);
 		this.addMouseListener(this);
 		this.objectsMap = new ComponentMapping(boxSize);
+		var temp = new DeviceToolbox();
+		this.add(temp);
+		temp.setLocation(new Point(20, 30));
 	}
 
 	Color gridColor = new Color(50, 50, 50);
 	Color secondaryGridColor = new Color(30, 30, 30);
-//	public double scaleX = 1;
-//	public double scaleY = 1;
-//	public int offsetX = 0;
-//	public int offsetY = 0;
 	private static final long serialVersionUID = 6803922477054275835L;
 
 	int getLOD() {
@@ -352,102 +336,157 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		var dim = new Dimension(p2.x - p1.x, p2.y - p1.y);
 		renderContext.setColor(Color.red);
 
-		var inRect = objectsMap.getComponentsInRect(p1, dim).toArray();
+		var raw = objectsMap.getComponentsInRect(p1, dim);
+		var inRect = raw.toArray(new CanvasDrawable[raw.size()]);
 
 		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
 		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
 		animContext.setTransform(renderContext.getTransform());
-
-		var t1 = System.nanoTime();
 		for (int i = inRect.length - 1; i >= 0; --i) {
 			var c = inRect[i];
-			((CanvasDrawable) c).update(renderContext);
+			if (c.isVisible())
+				c.update(renderContext);
 		}
 
 		g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
 		g.drawImage(animationLayer.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
-
-		var t2 = System.nanoTime();
-		double rTime = (t2 - t1) / 1000000000d;
-		double goalTime = 1d / 30d;
-//		System.out.println("Render time: " + rTime + " sec. Quality = " + quality + " Ratio = " + goalTime / rTime);
-//		quality = (Math.pow((goalTime / rTime), 3) + quality) / 2;
-//		quality = Math.max(0.01, Math.min(1, (quality)));
-
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		this.requestFocus();
+
+		// get what was clicked
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
-//		System.out.println(t);
-		if (t != null) {
-			if (t instanceof DeviceUI) {
-				((DeviceUI)t).displayProperties(mw.descriptionPanel);
+		switch (mode) {
+		case DRAG_COMPONENT: {
+
+			break;
+		}
+		case MAKE_WIRE: {
+			if (t instanceof NodeUI) {
+				var w = ((Wire) currSelected);
+				w.nodes.removeElementAt(w.nodes.size() - 1);
+
+				w.addNode((NodeUI) t);
+
+				currSelected = null;
+				mode = currentMode.NONE;
 			} else {
+				var temp = new NodeUI(screenToLocalPoint(e.getLocationOnScreen()), this);
+				temp.setVisible(false);
+				((Wire) currSelected).nodes.lastElement().setVisible(true);
+				((Wire) currSelected).addNode(temp);
+			}
+			break;
+		}
+		case NONE: {
+			if (t == null) {
 				mw.descriptionPanel.removeAll();
 				mw.descriptionPanel.repaint();
-			}
-		} else {
-			mw.descriptionPanel.removeAll();
-			mw.descriptionPanel.repaint();
-		}
-		if (t == null) {
-
-			if (mode == currentMode.MAKE_WIRE) {
-				var temp = new NodeUI(this, 3);
-				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-				((Wire) currSelected).addNode(temp);
-				return;
-			}
-		} else if (t instanceof NodeUI) {
-			if (mode == currentMode.MAKE_WIRE) {
-				if (t == ((Wire) currSelected).nodes.lastElement()) {
-					objectsMap.remove(t);
-					var temp = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
-
-					if (temp instanceof NodeUI) {
-						((Wire) currSelected).nodes.remove(t);
-						((Wire) currSelected).addNode((NodeUI) temp);
-						currSelected = null;
-						mode = currentMode.NONE;
-					} else {
-						objectsMap.store(t);
-						temp = new NodeUI(this, 3);
-						temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-						((Wire) currSelected).addNode((NodeUI) temp);
-					}
-				}
 			} else {
-				mode = currentMode.MAKE_WIRE;
-				Wire w = new Wire(this);
-				SimUiManager.wires.add(w);
-				w.addNode((NodeUI) t);
-				currSelected = w;
-				var temp = new NodeUI(this, 10);
-				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-				w.addNode(temp);
+				if (t instanceof NodeUI) {
+					mode = currentMode.MAKE_WIRE;
+					currSelected = new Wire(this);
+					SimUiManager.wires.add((Wire)currSelected);
+					((Wire) currSelected).addNode((NodeUI) t);
+					var temp = new NodeUI(screenToLocalPoint(e.getLocationOnScreen()), this);
+					temp.setVisible(false);
+					((Wire) currSelected).addNode(temp);
+				} else if (t instanceof DeviceUI) {
+					((DeviceUI) t).displayProperties(mw.descriptionPanel);
+				} else if (t instanceof Wire) {
+
+				}
 			}
+			break;
 		}
-
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + mode);
+		}
+		// nothing was clicked
+//		if (t == null) {
+//			// was it making wires?
+//			if (mode == currentMode.MAKE_WIRE) {
+//				if (e.getClickCount() == 2) { // add new node to selected wire
+//					((Wire) currSelected).addNode(new NodeUI(screenToLocalPoint(e.getLocationOnScreen()), this));
+//				}
+//			} else {
+//				mw.descriptionPanel.removeAll();
+//				mw.descriptionPanel.repaint();
+//				return;
+//			}
+//		}
+//		if (t != null) {
+//			if (t instanceof DeviceUI) {
+//				((DeviceUI) t).displayProperties(mw.descriptionPanel);
+//			} else if (t instanceof NodeUI) {
+//				if (mode == currentMode.MAKE_WIRE) {
+//					if (!((Wire) currSelected).contains((NodeUI) t)) {
+//						((Wire) currSelected).addNode((NodeUI) t);
+//						mode = currentMode.NONE;
+//					}
+//				}
+//			}
+////			} else {
+////				mw.descriptionPanel.removeAll();
+////				mw.descriptionPanel.repaint();
+////			}
+//		} else {
+//
+//		}
+//		if (t == null) {
+//
+//			if (mode == currentMode.MAKE_WIRE) {
+//				var temp = new NodeUI(this, 3);
+//				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+//				((Wire) currSelected).addNode(temp);
+//				return;
+//			}
+//		} else if (t instanceof NodeUI) {
+//			if (mode == currentMode.MAKE_WIRE) {
+//				if (t == ((Wire) currSelected).nodes.lastElement()) {
+//					objectsMap.remove(t);
+//					var temp = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
+//
+//					if (temp instanceof NodeUI) {
+//						((Wire) currSelected).nodes.remove(t);
+//						((Wire) currSelected).addNode((NodeUI) temp);
+//						currSelected = null;
+//						mode = currentMode.NONE;
+//					} else {
+//						objectsMap.store(t);
+//						temp = new NodeUI(this, 3);
+//						temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+//						((Wire) currSelected).addNode((NodeUI) temp);
+//					}
+//				}
+//			} else {
+//				mode = currentMode.MAKE_WIRE;
+//				Wire w = new Wire(this);
+//				SimUiManager.wires.add(w);
+//				w.addNode((NodeUI) t);
+//				currSelected = w;
+//				var temp = new NodeUI(this, 10);
+//				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+//				w.addNode(temp);
+//			}
+//		}
 		Render();
-
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
+
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		if (t != null)
 			((Component) t).dispatchEvent(e);
 
 		lastClicked = screenToLocalPoint(e.getLocationOnScreen());
-//		System.out.println("Mouse pressed");
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
 		if (mode != currentMode.MAKE_WIRE) {
 			mode = currentMode.NONE;
 			currSelected = null;
@@ -477,7 +516,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				t.dispatchEvent(e);
 			} else {
 				mode = currentMode.MOVE_CANVAS;
-//				System.out.println("Dragged canvas");
 				int dx = screenToLocalPoint(e.getLocationOnScreen()).x - lastClicked.x;
 				int dy = screenToLocalPoint(e.getLocationOnScreen()).y - lastClicked.y;
 				camTransform.translate(-dx / camTransform.getScaleX(), -dy / camTransform.getScaleY());
@@ -490,7 +528,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		// TODO Auto-generated method stub
 		if (e.getWheelRotation() < 0) {
 			zoom(e.getLocationOnScreen(), 1.02);
 		}
@@ -501,27 +538,32 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
 		if (mode == currentMode.MAKE_WIRE) {
+			Point p1 = e.getPoint();
+			Point p2 = ((Wire) currSelected).nodes.lastElement().getLocation();
+//			var g = getGraphics();
+//			g.setColor(Color.green);
+//			g.drawLine(p1.x, p1.y, p2.x, p2.y);
 			// find if anynode under
-			var currNode = ((Wire) currSelected).nodes.lastElement();
-			var b = currNode.regions.get(0).getBounds();
-			var pt = screenToLocalPoint(e.getLocationOnScreen());
-			var contactNodes = objectsMap.getComponentsInRect(pt, b.getSize());
-			NodeUI contact = null;
-			for (var n : contactNodes) {
-				if (n instanceof NodeUI && n != currNode) {
-					contact = (NodeUI) n;
-					break;
-				}
-			}
-			if (contact == null) {
-				((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-			} else {
-				((Wire) currSelected).nodes.lastElement().setLocation(contact.getLocation());
-			}
-			currSelected.getTransformedBounds();
-			objectsMap.store(currSelected);
+
+//			var currNode = ((Wire) currSelected).nodes.lastElement();
+//			var b = currNode.regions.get(0).getBounds();
+//			var pt = screenToLocalPoint(e.getLocationOnScreen());
+//			var contactNodes = objectsMap.getComponentsInRect(pt, b.getSize());
+//			NodeUI contact = null;
+//			for (var n : contactNodes) {
+//				if (n instanceof NodeUI && n != currNode) {
+//					contact = (NodeUI) n;
+//					break;
+//				}
+//			}
+//			if (contact == null) {
+//				((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+//			} else {
+			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
+//			}
+//			currSelected.getTransformedBounds();
+//			objectsMap.store(currSelected);
 			Render();
 		}
 	}

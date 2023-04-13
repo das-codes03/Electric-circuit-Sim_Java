@@ -33,6 +33,7 @@ public class SimUiManager {
 	public static ArrayList<Wire> wires = new ArrayList<>();
 	private static MainWindow mainWin;
 	public static SimulationEvent s = null;
+	public static double speed = 1;
 
 	public static void addComponent(String typeName, Point screenPos) {
 		try {
@@ -50,11 +51,15 @@ public class SimUiManager {
 					"Component not found", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
-		mainWin.renderCanvas.Render();
+		Render();
 	}
 
 	public static void addComponent(String typeName) {
 		addComponent(typeName, new Point(0, 0));
+	}
+
+	public static void Render() {
+		mainWin.renderCanvas.Render();
 	}
 
 	public static void StartSimulation() {
@@ -62,8 +67,8 @@ public class SimUiManager {
 		for (int i = 0; i < components.size(); ++i) {
 			components.get(i).setID(i);
 		}
-		
-		s = new SimulationEvent(components, wires, mainWin.renderCanvas);
+
+		s = new SimulationEvent(components, wires);
 		Thread t = new Thread(s);
 		t.start();
 	}
@@ -74,8 +79,6 @@ public class SimUiManager {
 			s = null;
 		}
 	}
-
-	
 
 	public static void main(String[] args) {
 		try {

@@ -21,6 +21,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import frontend.SimUiManager;
 import frontend.SimulationEvent;
 import uiPackage.RenderingCanvas.currentMode;
 
@@ -30,17 +31,21 @@ public abstract class DeviceUI extends CanvasDrawable {
 	private static final int LOD_COUNT = 10;
 	private final String typeName;
 	private Animable animator;
-	
+
 	public String getTypeName() {
 		return typeName;
 	}
+
 	private int ID;
+
 	public int getID() {
 		return ID;
 	}
+
 	public void setID(int ID) {
 		this.ID = ID;
 	}
+
 	public final void addAnimator(Animable anim) {
 		this.animator = anim;
 	}
@@ -141,11 +146,8 @@ public abstract class DeviceUI extends CanvasDrawable {
 		this.lastClickedLocalSpace = new Point(0, 0);
 		setSize(new Dimension(width, height));
 
-		try {
-			rawimage = ResourceManager.loadImage(imagePath, LOD_COUNT);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		rawimage = ResourceManager.loadImage(imagePath, LOD_COUNT);
+
 		this.typeName = typeName;
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
@@ -156,7 +158,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public void update(Graphics g) {
 		Graphics2D gx = (Graphics2D) g.create();
 		int lod = Math.max(Math.min(canvas.getLOD(), LOD_COUNT - 1), 0);
-		System.out.println(lod);
+//		System.out.println(lod);
 		BufferedImage img = rawimage.get(lod);
 		Rectangle bounds = getTransformedBounds(); // get bounding box
 		gx.translate(bounds.getCenterX() - getWidth() / 2.0, bounds.getCenterY() - getHeight() / 2.0);
@@ -175,7 +177,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 //		if (globalPointInShape(e.getLocationOnScreen())) {
 		canvas.mode = currentMode.DRAG_COMPONENT;
 		canvas.currSelected = this;
-		System.out.println("Dragged " + this.hashCode());
+//		System.out.println("Dragged " + this.hashCode());
 		var p = canvas.screenToLocalPoint(e.getLocationOnScreen());
 		int dx = p.x - getX() - lastClickedLocalSpace.x;
 		int dy = p.y - getY() - lastClickedLocalSpace.y;
@@ -216,10 +218,16 @@ public abstract class DeviceUI extends CanvasDrawable {
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
+
+	public void remove() {
+		SimUiManager.components.remove(this);
+		canvas.objectsMap.remove(this);
+	}
+
 	public abstract void revalidateProperties(SimulationEvent evt);
+
 	public abstract void updateAttributes(HashMap<String, Object> data);
 
 }

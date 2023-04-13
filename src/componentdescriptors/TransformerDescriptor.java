@@ -1,7 +1,6 @@
 package componentdescriptors;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -15,16 +14,11 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import Backend.simulator.components.ACSource;
-import Backend.simulator.components.Inductor;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
-import uiPackage.CanvasDrawable;
-
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
-import utilities.NumericUtilities;
 
 public class TransformerDescriptor extends DeviceUI {
 	private int primary = 12;

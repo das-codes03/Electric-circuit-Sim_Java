@@ -15,8 +15,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import Backend.simulator.components.ACSource;
-import Backend.simulator.components.DCSource;
+import Backend.api.Components.ACSource;
+import Backend.api.Components.DCSource;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;

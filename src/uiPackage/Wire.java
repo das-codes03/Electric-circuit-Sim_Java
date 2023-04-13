@@ -26,21 +26,20 @@ public class Wire extends CanvasDrawable {
 		if (n == null)
 			n = new NodeUI(canvas, 10);
 		nodes.add(n);
+		n.includeWire(this);
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
-		// canvas.components.add(this);
 		canvas.bringToFront(this);
 	}
-
+	public boolean contains(NodeUI node) {
+		return nodes.contains(node);
+	}
 	public void setWire(Vector<NodeUI> nodes) {
 		canvas.objectsMap.remove(this);
 		this.nodes = nodes;
-
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
-		// canvas.components.add(this);
 		canvas.bringToFront(this);
-
 	}
 
 	public Wire(RenderingCanvas canvas) {
@@ -84,13 +83,12 @@ public class Wire extends CanvasDrawable {
 			at.setToIdentity();
 
 		}
-		System.out.println("Wire : " + nodes.size());
+
 		return null;
 	}
 
 	@Override
 	public void update(Graphics g) {
-		// TODO Auto-generated method stub
 		Graphics2D gx = (Graphics2D) g.create(); // cast to 2D
 		getTransformedBounds(); // get bounding box
 
@@ -108,7 +106,6 @@ public class Wire extends CanvasDrawable {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 

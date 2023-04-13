@@ -3,35 +3,28 @@ package Backend.api;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-
 import javax.naming.directory.AttributeInUseException;
 
-import org.apache.commons.math3.linear.RealMatrix;
-
-import Backend.simulator.Circuit;
-import Backend.simulator.Component;
-
-
+import frontend.SimUiManager;
 
 public class SimulatorAPI implements Runnable {
+	public class ShortCircuitException extends Exception{
+	}
 	private final HashMap<Integer, Component> identifiers;
 
 	public class SimulationState {
-		public SimulationState() {
+		SimulationState() {
 			stateData = new HashMap<>();
 			timeStamp = 0;
 		}
-
 		public double getT() {
 			return timeStamp;
 		}
-
 		private double timeStamp;
 		public HashMap<Integer, HashMap<String, Object>> stateData;
 	}
 
-	public SimulationState state;
+	public final SimulationState state;
 
 	public SimulatorAPI() {
 		this.timeScale = 1;
@@ -49,22 +42,23 @@ public class SimulatorAPI implements Runnable {
 		return data;
 	}
 
-	private long simulateStep(double dt, int substeps) {
+	private long simulateStep(double dt, int substeps) throws ShortCircuitException {
 		long t1 = System.nanoTime();
 		int t = substeps;
 		double rDt = dt / substeps;
-
-		RealMatrix r = null;
 		while (t-- > 0) {
 			if (!initialized) {
 				c.initialiseCircuit();
 				initialized = true;
 			}
-
-			c.GenerateEmfMatrix();
-			c.GenerateResistanceMatrix(rDt);
-			c.GenerateInductanceMatrix();
-			r = c.solveCurrent(rDt);
+			c.generateEmfMatrix();
+			c.generateResistanceMatrix(rDt);
+			c.generateInductanceMatrix();
+			var scTest = c.shortCircuitTest();
+			if(scTest.size() > 0) {
+				throw new ShortCircuitException();
+			}
+			c.solveCurrent(rDt);
 			c.updateSegments(rDt);
 			timeElapsed += rDt;
 			for (var data : identifiers.values()) {
@@ -75,26 +69,15 @@ public class SimulatorAPI implements Runnable {
 		state.timeStamp = timeElapsed;
 		long t2 = System.nanoTime();
 		return t2 - t1;
-//		System.out.println("Current: " + r);
 	}
-
-//	public Simulation(double dt, double timeScale) {
-//		super();
-//		this.c = new Circuit();
-//		identifiers = new HashMap<Integer, Component>();
-//		this.dt = dt;
-//		this.timeScale = timeScale;
-//	}
-
 	private Circuit c;
 	private double timeScale;
-
 	public void addComponent(int identifier, String componentName) throws Exception {
 		if (identifiers.containsKey(identifier)) {
 			throw new AttributeInUseException("Key " + identifier + " already exists");
 		}
 		try {
-			Class<Component> x = (Class<Component>) Class.forName("Backend.simulator.components." + componentName);
+			Class<Component> x = (Class<Component>) Class.forName("Backend.api.Components." + componentName);
 			try {
 				var comp = c.addComponent(x.getDeclaredConstructor(new Class[] { Circuit.class }).newInstance(c));
 				identifiers.put(identifier, comp);
@@ -107,29 +90,22 @@ public class SimulatorAPI implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
 	enum mode {
 		RUNNING, PAUSED, TERMINATED
 	}
-
 	private mode CurrMode = mode.TERMINATED;
-
 	public void play() {
 		CurrMode = mode.RUNNING;
 	}
-
 	public void pause() {
 		CurrMode = mode.PAUSED;
 	}
-
 	public void stop() {
 		CurrMode = mode.TERMINATED;
 	}
-
 	public void setTimeScale(double t) {
 		this.timeScale = t;
 	}
-
 	/** Connect set of nodes. Format is [{iden1, n1}...] */
 	public void connect(ArrayList<int[]> data) {
 		try {
@@ -140,26 +116,30 @@ public class SimulatorAPI implements Runnable {
 				var node = identifiers.get(data.get(i)[0]).getExternalNode(data.get(i)[1]);
 				temp.add(node);
 			}
-			c.MergeNodes(temp);
+			c.mergeNodes(temp);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void run() {
+	public void run(){
 		play();
 		int simulationRate = 100;
 		int stepMS = (int) (1000.0 / simulationRate);
+		long elapsed = 0;
 		while (CurrMode != mode.TERMINATED) {
 			while (CurrMode == mode.PAUSED)
 				; // wait while paused
-			var elapsed = simulateStep(timeScale/simulationRate, 10);
-			System.out.println(elapsed);
-
+			timeScale = SimUiManager.speed;
+			try {
+				elapsed = simulateStep(timeScale/simulationRate, 10);
+			} catch (ShortCircuitException e1) {
+				e1.printStackTrace();
+			}
 			if (elapsed < stepMS * 1000000) {
 				try {
-//					Thread.currentThread().wait((1000000000 - elapsed) / 1000000);
-					Thread.currentThread().sleep(stepMS-(elapsed)/1000000);
+					Thread.currentThread();
+					Thread.sleep(stepMS-(elapsed)/1000000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -175,7 +155,7 @@ public class SimulatorAPI implements Runnable {
 			var node2 = identifiers.get(iden2).getExternalNode(n2);
 			temp.add(node1);
 			temp.add(node2);
-			c.MergeNodes(temp);
+			c.mergeNodes(temp);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -188,5 +168,4 @@ public class SimulatorAPI implements Runnable {
 	}
 	private boolean initialized = false;
 	private double timeElapsed = 0;
-
 }

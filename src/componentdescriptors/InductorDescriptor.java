@@ -15,9 +15,9 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import Backend.simulator.components.ACSource;
-import Backend.simulator.components.DCSource;
-import Backend.simulator.components.Inductor;
+import Backend.api.Components.ACSource;
+import Backend.api.Components.DCSource;
+import Backend.api.Components.Inductor;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
@@ -38,43 +38,24 @@ public class InductorDescriptor extends DeviceUI {
 
 	public InductorDescriptor(RenderingCanvas canvas, Point position) throws IOException {
 
-		super(canvas, "components/inductor.png", 100, 50, new Point[] { new Point(45, 0), new Point(-45, 0) }, "Inductor");
+		super(canvas, "components/inductor.png", 100, 50, new Point[] { new Point(45, 0), new Point(-45, 0) },
+				"Inductor");
 		addAnimator(new Animable() {
-			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
-				gx.translate(50, 25);
+				gx.translate(getWidth() / 2, getHeight() / 2);
 				gx.setColor(Color.white);
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(inductance, 4) + "H",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 20));
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-				gx.scale(-1, 1);
-				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(inductance, 3) + "H", Animable.globalFont, gx,
+						new Point(0, 20));
+				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
+						Animable.globalFont, gx, new Point(0, -40));
+				Animable.drawArrow(gx, 0, -25, current, 0.0);
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-//		super(canvas, position, "Diode");
-//		this.uiComp = new DeviceUI(canvas, "components/inductor.png", 200, 100, this,
-//				new Point[] { new Point(95, 0), new Point(-95, 0) }, new Animable() {
-//					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-//					@Override
-//					public void animate(Graphics g) {
-//						Graphics2D gx = (Graphics2D) g.create();
-//						gx.translate(100, 50);
-//						gx.setColor(Color.white);
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(inductance, 4) + "H",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 20));
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-//						gx.scale(-1, 1);
-//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
-//						gx.dispose();
-//					}
-//				});
-//		uiComp.setLocation(position);
+
 	}
 
 	@Override
@@ -97,11 +78,13 @@ public class InductorDescriptor extends DeviceUI {
 		parent.repaint();
 		System.out.println("here");
 	}
+
 	@Override
 	public void updateAttributes(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		current =(double) data.get(ACSource.CURRENT);
+		current = (double) data.get(ACSource.CURRENT);
 	}
+
 	@Override
 	public void revalidateProperties(SimulationEvent evt) {
 		try {

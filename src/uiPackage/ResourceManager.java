@@ -34,11 +34,16 @@ public class ResourceManager {
 		return newImage;
 	}
 
-	public static ArrayList<BufferedImage> loadImage(String path, int uptoLOD) throws IOException {
+	public static ArrayList<BufferedImage> loadImage(String path, int uptoLOD) {
 		File f = new File(parentFolder + path);
 		if (!images.containsKey(f)) {
 			var lods = new ArrayList<BufferedImage>();
-			BufferedImage temp = ImageIO.read(ResourceManager.class.getResource(parentFolder+path));
+			BufferedImage temp = null;
+			try {
+				temp = ImageIO.read(ResourceManager.class.getResource(parentFolder + path));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			for (int i = 0; i <= uptoLOD; ++i) {
 				lods.add(getLODimage(temp, i));
 			}
@@ -49,7 +54,6 @@ public class ResourceManager {
 			gotImgs.add(getLODimage(gotImgs.get(0), i));
 		}
 
-		System.out.println("Image count = " + images.size());
 		return images.get(f);
 	}
 
