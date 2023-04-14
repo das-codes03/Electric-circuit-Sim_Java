@@ -22,6 +22,7 @@ public class Switch extends Component {
 	public void updateState(double t, double dt) {
 		super.updateState(t, dt);
 		boolean closed = (boolean) properties.get(CLOSED);
+		segments[0].setBreakdown(1e18);
 		if(closed) {
 			segments[0].setCapacitance(Double.POSITIVE_INFINITY);
 		}else {

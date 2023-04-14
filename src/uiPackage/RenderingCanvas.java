@@ -40,6 +40,9 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	enum currentMode {
 		MOVE_CANVAS, DRAG_COMPONENT, MAKE_WIRE, NONE
 	}
+	Color gridColor = new Color(20, 30, 20);
+	Color secondaryGridColor = new Color(10, 20, 10);
+	private static final long serialVersionUID = 6803922477054275835L;
 
 	/** Here screen will be stored. */
 	private BufferedImage renderImage;
@@ -282,9 +285,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		temp.setLocation(new Point(20, 30));
 	}
 
-	Color gridColor = new Color(50, 50, 50);
-	Color secondaryGridColor = new Color(30, 30, 30);
-	private static final long serialVersionUID = 6803922477054275835L;
 
 	int getLOD() {
 		int l = -(int) Math.log(Math.min(camTransform.getScaleX() / lodMultiplier, 1));
@@ -301,21 +301,21 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		g.setColor(gridColor);
 
-		for (double i = -gap * scale; i < getWidth(); i += gap * scale) {
+		for (double i = -gap * scale; i < getWidth()+gap * scale; i += gap * scale) {
 			var shift = (-offX % gap) * scale;
 			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = -gap * scale; i < getHeight(); i += gap * scale) {
+		for (double i = -gap * scale; i < getHeight()+gap * scale; i += gap * scale) {
 			var shift = (-offY % gap) * scale;
 			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
 		}
 		g.setColor(secondaryGridColor);
 
-		for (double i = -gap * scale; i < getWidth(); i += gap * scale) {
+		for (double i = -gap * scale; i < getWidth()+gap * scale; i += gap * scale) {
 			var shift = (-offX % gap + gap / 2) * scale;
 			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = -gap * scale; i < getHeight(); i += gap * scale) {
+		for (double i = -gap * scale; i < getHeight()+gap * scale; i += gap * scale) {
 			var shift = (-offY % gap + gap / 2) * scale;
 			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
 		}
