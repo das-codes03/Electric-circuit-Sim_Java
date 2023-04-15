@@ -134,9 +134,7 @@ public class ACSourceDescriptor extends DeviceUI {
 		try {
 			evt.sim.setProperty(getID(), ACSource.AMPLITUDE, amplitude);
 			evt.sim.setProperty(getID(), ACSource.FREQUENCY, frequency);
-
 			evt.sim.setProperty(getID(), ACSource.PHASE, phase);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

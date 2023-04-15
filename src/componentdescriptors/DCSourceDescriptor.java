@@ -50,7 +50,7 @@ public class DCSourceDescriptor extends DeviceUI {
 						Animable.globalFont, gx, new Point(0, 40));
 				Animable.drawArrow(gx, 0, -33, current, 0.0);
 				String dir = "+  -";
-				if (emf < 0) {
+				if (emf > 0) {
 					dir = "-  +";
 				}
 				Animable.writeCenteredText(dir, new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));

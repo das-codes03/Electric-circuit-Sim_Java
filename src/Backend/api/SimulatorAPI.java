@@ -4,8 +4,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.naming.directory.AttributeInUseException;
+import javax.swing.JOptionPane;
 
-import frontend.SimUiManager;
+import frontend.Driver;
 
 public class SimulatorAPI implements Runnable {
 	public class ShortCircuitException extends Exception{
@@ -50,14 +51,17 @@ public class SimulatorAPI implements Runnable {
 			if (!initialized) {
 				c.initialiseCircuit();
 				initialized = true;
+				for (var data : identifiers.values()) {
+					data.updateState(0, 0);
+				}
 			}
 			c.generateEmfMatrix();
 			c.generateResistanceMatrix(rDt);
 			c.generateInductanceMatrix();
 			var scTest = c.shortCircuitTest();
-			if(scTest.size() > 0) {
-				throw new ShortCircuitException();
-			}
+//			if(scTest.size() > 0) {
+//				throw new ShortCircuitException();
+//			}
 			c.solveCurrent(rDt);
 			c.updateSegments(rDt);
 			timeElapsed += rDt;
@@ -113,7 +117,7 @@ public class SimulatorAPI implements Runnable {
 			for (int i = 0; i < data.size(); i++) {
 				if (data.get(i).length != 2)
 					throw new IllegalArgumentException("Data array must contain as format {iden1, n1}");
-				var node = identifiers.get(data.get(i)[0]).getExternalNode(data.get(i)[1]);
+				var node = identifiers.get(data.get(i)[0]).getPin(data.get(i)[1]);
 				temp.add(node);
 			}
 			c.mergeNodes(temp);
@@ -130,11 +134,14 @@ public class SimulatorAPI implements Runnable {
 		while (CurrMode != mode.TERMINATED) {
 			while (CurrMode == mode.PAUSED)
 				; // wait while paused
-			timeScale = SimUiManager.speed;
+			timeScale = Driver.getDriver().speed;
 			try {
 				elapsed = simulateStep(timeScale/simulationRate, 10);
 			} catch (ShortCircuitException e1) {
-				e1.printStackTrace();
+				System.err.println("SHORT");
+				JOptionPane.showMessageDialog(null, "The circuit may be shorted! Please check circuit.", "Short circuit detected", JOptionPane.ERROR_MESSAGE);
+				CurrMode = mode.TERMINATED;
+				return;
 			}
 			if (elapsed < stepMS * 1000000) {
 				try {
@@ -151,8 +158,8 @@ public class SimulatorAPI implements Runnable {
 	public void connect(int iden1, int n1, int iden2, int n2) {
 		try {
 			var temp = new ArrayList<Circuit.Node>();
-			var node1 = identifiers.get(iden1).getExternalNode(n1);
-			var node2 = identifiers.get(iden2).getExternalNode(n2);
+			var node1 = identifiers.get(iden1).getPin(n1);
+			var node2 = identifiers.get(iden2).getPin(n2);
 			temp.add(node1);
 			temp.add(node2);
 			c.mergeNodes(temp);

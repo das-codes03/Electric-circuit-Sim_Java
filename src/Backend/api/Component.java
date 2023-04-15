@@ -14,10 +14,10 @@ public abstract class Component {
 	protected HashMap<String, Object> states = new HashMap<>();
 	protected Circuit c;//associated circuit
 	protected double t;
-	public Object getState(String s) throws NoSuchFieldException {
+	public Object getState(String s) {
 		var state = states.get(s);
 		if (state == null)
-			throw new NoSuchFieldException(this.getClass().getName() + " doesn't contain state " + s);
+			throw new RuntimeException(this.getClass().getName() + " doesn't contain state " + s);
 		return state;
 	}
 	public HashMap<String, Object> getAllStates(){
@@ -27,17 +27,17 @@ public abstract class Component {
 		}
 		return temp;
 	}
-	public void setProperty(String property,Object value) throws NoSuchFieldException {
+	public void setProperty(String property,Object value){
 		var x = properties.get(property);
-		if(x == null) throw new NoSuchFieldException(this.getClass().getName() + " doesn't contain property " + property);
+		if(x == null) throw new RuntimeException(this.getClass().getName() + " doesn't contain property " + property);
 		else {
 			properties.put(property, value);
 			updateProperties();
 		}
 	}
-	public Object getProperty(String property) throws NoSuchFieldException {
+	public Object getProperty(String property) {
 		var x = properties.get(property);
-		if(x == null) throw new NoSuchFieldException(this.getClass().getName() + " doesn't contain property " + property);
+		if(x == null) throw new RuntimeException(this.getClass().getName() + " doesn't contain property " + property);
 		else
 			return properties.get(property);
 	}
@@ -45,6 +45,6 @@ public abstract class Component {
 		this.t = t;
 	};
 	public abstract void updateProperties();
-	public abstract Circuit.Node getExternalNode(int index1) throws Exception;
+	public abstract Circuit.Node getPin(int index1) throws Exception;
 
 }

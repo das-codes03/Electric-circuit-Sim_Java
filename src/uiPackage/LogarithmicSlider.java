@@ -1,38 +1,37 @@
 package uiPackage;
 
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
-
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
-
 import utilities.NumericUtilities;
 
 public class LogarithmicSlider extends JSlider {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3552928829448308293L;
 	private int sigNum;
 	private int minPow;
+	@SuppressWarnings("unused")
 	private int maxPow;
+
 	public LogarithmicSlider(int minPow, int maxPow, int sigDigits) {
-		this(minPow,maxPow, sigDigits, "");
+		this(minPow, maxPow, sigDigits, "");
 	}
+
 	public LogarithmicSlider(int minPow, int maxPow, int sigDigits, String tickSuffix) {
 		this.minPow = minPow;
 		this.maxPow = maxPow;
 		this.sigNum = sigDigits;
-		this.setMinimum((int) Math.pow(10, sigDigits) - (int) Math.pow(10, sigDigits - 1));
-		this.setMaximum(getMinimum() +(int)(9 * Math.pow(10, sigNum-1) * (maxPow - minPow)));
-//		this.setMaximum((int) Math.pow(10, sigNum) * (maxPow - minPow+1) -(int) Math.pow(10, sigNum));
-		
-		this.setMajorTickSpacing((int) Math.pow(10, sigNum) - (int) Math.pow(10, sigNum - 1));
+		this.setMinimum(9 * (int) Math.pow(10, sigDigits - 1));
+		this.setMaximum(getMinimum() + (int) (9 * Math.pow(10, sigNum - 1) * (maxPow - minPow)));
+		this.setMajorTickSpacing(9 * (int) Math.pow(10, sigNum - 1));
 		this.setMinorTickSpacing(this.getMajorTickSpacing() / 4);
 		Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 		for (int i = this.getMinimum(); i <= this.getMaximum(); i += 3 * this.getMajorTickSpacing()) {
-			var lbl = new JLabel(NumericUtilities.getPrefixed(lVal(i),3, true) + tickSuffix);
-			lbl.setFont(new Font(Font.SANS_SERIF,Font.BOLD, 9));
+			var lbl = new JLabel(NumericUtilities.getPrefixed(lVal(i), 1) + tickSuffix);
+			lbl.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 9));
 			labelTable.put(i, lbl);
 		}
 		this.setLabelTable(labelTable);
@@ -66,6 +65,6 @@ public class LogarithmicSlider extends JSlider {
 	}
 
 	public double getLogValue() {
-		return lVal(super.getValue());
+		return NumericUtilities.getRounded(lVal(super.getValue()),sigNum);
 	}
 }

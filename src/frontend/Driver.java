@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
+import javax.management.AttributeNotFoundException;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -27,15 +28,22 @@ import uiPackage.DeviceUI;
 
 import uiPackage.Wire;
 
-public class SimUiManager {
+public class Driver {
 
-	public static ArrayList<DeviceUI> components = new ArrayList<>();
-	public static ArrayList<Wire> wires = new ArrayList<>();
-	private static MainWindow mainWin;
-	public static SimulationEvent s = null;
-	public static double speed = 1;
+	private final ArrayList<DeviceUI> components = new ArrayList<>();
+	private final ArrayList<Wire> wires = new ArrayList<>();
+	public final MainWindow mainWin;
 
-	public static void addComponent(String typeName, Point screenPos) {
+
+	public SimulationEvent s = null;
+	public double speed = 1;
+	private boolean running;
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void addComponent(String typeName, Point screenPos) {
 		try {
 			Class<DeviceUI> act = (Class<DeviceUI>) Class.forName("componentdescriptors." + typeName + "Descriptor");
 			try {
@@ -54,16 +62,41 @@ public class SimUiManager {
 		Render();
 	}
 
-	public static void addComponent(String typeName) {
+	public void addComponent(String typeName) {
 		addComponent(typeName, new Point(0, 0));
 	}
 
-	public static void Render() {
+	public void deleteComponent(DeviceUI comp) throws Exception {
+		int i = components.indexOf(comp);
+		if (i == -1)
+			throw new Exception("Component " + comp.getTypeName() + " not found.");
+		comp.remove();
+		components.remove(comp);
+	}
+
+	public void addWire(Wire w) {
+		wires.add(w);
+	}
+
+	public void deleteWire(Wire w) throws Exception {
+		int i = wires.indexOf(w);
+		if (i == -1)
+			throw new Exception("Wire not found.");
+		w.remove();
+		wires.remove(w);
+	}
+
+	public void Render() {
 		mainWin.renderCanvas.Render();
 	}
 
-	public static void StartSimulation() {
+	public void StartSimulation() {
 		// Assign IDs to components
+		if (isRunning()) {
+			System.out.println("Simulation already running");
+			return;
+		}
+
 		for (int i = 0; i < components.size(); ++i) {
 			components.get(i).setID(i);
 		}
@@ -71,23 +104,37 @@ public class SimUiManager {
 		s = new SimulationEvent(components, wires);
 		Thread t = new Thread(s);
 		t.start();
+		running = true;
+		System.out.println("Total threads: " + Thread.activeCount());
 	}
 
-	public static void stopSimulation() {
+	public void stopSimulation() {
 		if (s != null) {
 			s.running = false;
 			s = null;
+			running = false;
 		}
 	}
 
-	public static void main(String[] args) {
+	private static Driver driver;
+
+	public static Driver getDriver() {
+		return driver;
+	}
+
+	public Driver() {
 		try {
 			UIManager.setLookAndFeel(new FlatMacDarkLaf());
 			UIManager.put("RootPane.background", new Color(20, 20, 20));
 		} catch (UnsupportedLookAndFeelException ex) {
 			System.out.println("Couldn't set look and feel");
 		}
+		driver = this;
 		mainWin = new MainWindow();
+	}
+
+	public static void main(String[] args) {
+		new Driver();
 	}
 
 }

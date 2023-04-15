@@ -9,14 +9,11 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Comparator;
 
 import java.util.HashMap;
@@ -26,20 +23,18 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import javax.swing.JComponent;
-import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
-import componentdescriptors.ResistorDescriptor;
 import frontend.MainWindow;
-import frontend.SimUiManager;
+import frontend.Driver;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
 
 	enum currentMode {
 		MOVE_CANVAS, DRAG_COMPONENT, MAKE_WIRE, NONE
 	}
+
 	Color gridColor = new Color(20, 30, 20);
 	Color secondaryGridColor = new Color(10, 20, 10);
 	private static final long serialVersionUID = 6803922477054275835L;
@@ -280,11 +275,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		this.addMouseMotionListener(this);
 		this.addMouseListener(this);
 		this.objectsMap = new ComponentMapping(boxSize);
-		var temp = new DeviceToolbox();
-		this.add(temp);
-		temp.setLocation(new Point(20, 30));
+//		var temp = new DeviceToolbox();
+//		this.add(temp);
+//		temp.setLocation(new Point(20, 30));
 	}
-
 
 	int getLOD() {
 		int l = -(int) Math.log(Math.min(camTransform.getScaleX() / lodMultiplier, 1));
@@ -301,21 +295,21 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 		g.setColor(gridColor);
 
-		for (double i = -gap * scale; i < getWidth()+gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < getWidth() + gap * scale; i += gap * scale) {
 			var shift = (-offX % gap) * scale;
 			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = -gap * scale; i < getHeight()+gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < getHeight() + gap * scale; i += gap * scale) {
 			var shift = (-offY % gap) * scale;
 			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
 		}
 		g.setColor(secondaryGridColor);
 
-		for (double i = -gap * scale; i < getWidth()+gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < getWidth() + gap * scale; i += gap * scale) {
 			var shift = (-offX % gap + gap / 2) * scale;
 			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
 		}
-		for (double i = -gap * scale; i < getHeight()+gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < getHeight() + gap * scale; i += gap * scale) {
 			var shift = (-offY % gap + gap / 2) * scale;
 			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
 		}
@@ -355,7 +349,12 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		this.requestFocus();
-
+		var children = getComponents();
+		for (var c : children) {
+			if (c instanceof DeviceToolbox) {
+				remove(c);
+			}
+		}
 		// get what was clicked
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		switch (mode) {
@@ -380,24 +379,23 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			}
 			break;
 		}
+
 		case NONE: {
 			if (t == null) {
-				mw.descriptionPanel.removeAll();
-				mw.descriptionPanel.getParent().revalidate();
-				mw.descriptionPanel.repaint();
+				mw.refreshDescription();
 			} else {
 				if (t instanceof NodeUI) {
 					mode = currentMode.MAKE_WIRE;
 					currSelected = new Wire(this);
-					SimUiManager.wires.add((Wire)currSelected);
+					Driver.getDriver().addWire((Wire) currSelected);
 					((Wire) currSelected).addNode((NodeUI) t);
 					var temp = new NodeUI(screenToLocalPoint(e.getLocationOnScreen()), this);
 					temp.setVisible(false);
 					((Wire) currSelected).addNode(temp);
 				} else if (t instanceof DeviceUI) {
-					((DeviceUI) t).displayProperties(mw.descriptionPanel);
+					t.dispatchEvent(e);
 				} else if (t instanceof Wire) {
-
+					t.dispatchEvent(e);
 				}
 			}
 			break;
@@ -405,84 +403,14 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		default:
 			throw new IllegalArgumentException("Unexpected value: " + mode);
 		}
-		// nothing was clicked
-//		if (t == null) {
-//			// was it making wires?
-//			if (mode == currentMode.MAKE_WIRE) {
-//				if (e.getClickCount() == 2) { // add new node to selected wire
-//					((Wire) currSelected).addNode(new NodeUI(screenToLocalPoint(e.getLocationOnScreen()), this));
-//				}
-//			} else {
-//				mw.descriptionPanel.removeAll();
-//				mw.descriptionPanel.repaint();
-//				return;
-//			}
-//		}
-//		if (t != null) {
-//			if (t instanceof DeviceUI) {
-//				((DeviceUI) t).displayProperties(mw.descriptionPanel);
-//			} else if (t instanceof NodeUI) {
-//				if (mode == currentMode.MAKE_WIRE) {
-//					if (!((Wire) currSelected).contains((NodeUI) t)) {
-//						((Wire) currSelected).addNode((NodeUI) t);
-//						mode = currentMode.NONE;
-//					}
-//				}
-//			}
-////			} else {
-////				mw.descriptionPanel.removeAll();
-////				mw.descriptionPanel.repaint();
-////			}
-//		} else {
-//
-//		}
-//		if (t == null) {
-//
-//			if (mode == currentMode.MAKE_WIRE) {
-//				var temp = new NodeUI(this, 3);
-//				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-//				((Wire) currSelected).addNode(temp);
-//				return;
-//			}
-//		} else if (t instanceof NodeUI) {
-//			if (mode == currentMode.MAKE_WIRE) {
-//				if (t == ((Wire) currSelected).nodes.lastElement()) {
-//					objectsMap.remove(t);
-//					var temp = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
-//
-//					if (temp instanceof NodeUI) {
-//						((Wire) currSelected).nodes.remove(t);
-//						((Wire) currSelected).addNode((NodeUI) temp);
-//						currSelected = null;
-//						mode = currentMode.NONE;
-//					} else {
-//						objectsMap.store(t);
-//						temp = new NodeUI(this, 3);
-//						temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-//						((Wire) currSelected).addNode((NodeUI) temp);
-//					}
-//				}
-//			} else {
-//				mode = currentMode.MAKE_WIRE;
-//				Wire w = new Wire(this);
-//				SimUiManager.wires.add(w);
-//				w.addNode((NodeUI) t);
-//				currSelected = w;
-//				var temp = new NodeUI(this, 10);
-//				temp.setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-//				w.addNode(temp);
-//			}
-//		}
 		Render();
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-
 		var t = objectsMap.getTop(screenToLocalPoint(e.getLocationOnScreen()));
 		if (t != null)
 			((Component) t).dispatchEvent(e);
-
 		lastClicked = screenToLocalPoint(e.getLocationOnScreen());
 	}
 
@@ -496,14 +424,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -521,7 +445,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				int dy = screenToLocalPoint(e.getLocationOnScreen()).y - lastClicked.y;
 				camTransform.translate(-dx / camTransform.getScaleX(), -dy / camTransform.getScaleY());
 			}
-
 		}
 		lastClicked = screenToLocalPoint(e.getLocationOnScreen());
 		Render();
@@ -540,31 +463,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		if (mode == currentMode.MAKE_WIRE) {
-			Point p1 = e.getPoint();
-			Point p2 = ((Wire) currSelected).nodes.lastElement().getLocation();
-//			var g = getGraphics();
-//			g.setColor(Color.green);
-//			g.drawLine(p1.x, p1.y, p2.x, p2.y);
-			// find if anynode under
-
-//			var currNode = ((Wire) currSelected).nodes.lastElement();
-//			var b = currNode.regions.get(0).getBounds();
-//			var pt = screenToLocalPoint(e.getLocationOnScreen());
-//			var contactNodes = objectsMap.getComponentsInRect(pt, b.getSize());
-//			NodeUI contact = null;
-//			for (var n : contactNodes) {
-//				if (n instanceof NodeUI && n != currNode) {
-//					contact = (NodeUI) n;
-//					break;
-//				}
-//			}
-//			if (contact == null) {
-//				((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-//			} else {
 			((Wire) currSelected).nodes.lastElement().setLocation(screenToLocalPoint(e.getLocationOnScreen()));
-//			}
-//			currSelected.getTransformedBounds();
-//			objectsMap.store(currSelected);
 			Render();
 		}
 	}

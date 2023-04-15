@@ -12,6 +12,12 @@ public class Transformer extends Component {
 	public static final String SECONDARY_WINDINGS = "secondary";
 	public static final String PRIMARY_WINDINGS = "primary";
 	public static final String PRIMARY_INDUCTANCE = "inductance";
+	
+	public static final int PRIMARY_PIN0 = 0;
+	public static final int PRIMARY_PIN1 = 1;
+	public static final int SECONDARY_PIN0 = 2;
+	public static final int SECONDARY_PIN1 = 3;
+	
 	private double prevPrimCurrent;
 	private double prevSecCurrent;
 
@@ -23,8 +29,8 @@ public class Transformer extends Component {
 		properties.put(SECONDARY_WINDINGS, 100);
 		properties.put(PRIMARY_WINDINGS, 10);
 		properties.put(PRIMARY_INDUCTANCE, 10.0);
-		updateProperties();
-		updateState(t, 0);
+		states.put(PRIMARY_CURRENT, 0.0);
+		states.put(SECONDARY_CURRENT, 0.0);
 	}
 
 	@Override
@@ -54,7 +60,7 @@ public class Transformer extends Component {
 	}
 
 	@Override
-	public Circuit.Node getExternalNode(int index) throws Exception {
+	public Circuit.Node getPin(int index) throws Exception {
 		if (index < 0 || index > 4) {
 			throw new Exception("Node index must be in [0-3]");
 		}

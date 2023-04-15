@@ -24,7 +24,7 @@ import javax.swing.event.DocumentListener;
 import Backend.api.Components.ACSource;
 import Backend.api.Components.Inductor;
 import Backend.api.Components.Resistor;
-import frontend.SimUiManager;
+import frontend.Driver;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
@@ -75,7 +75,7 @@ public class ResistorDescriptor extends DeviceUI {
 		JLabel restag = new JLabel("Resistance = " + NumericUtilities.getPrefixed(resistance, 4) + "Ω");
 		restag.setAlignmentX(CENTER_ALIGNMENT);
 		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9, 6, 4, "Ω");
+		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4, "Ω");
 		resval.setLogValue(resistance);
 		resval.addChangeListener(new ChangeListener() {
 			@Override

@@ -3,6 +3,7 @@ package componentdescriptors;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -38,18 +39,21 @@ public class BulbDescriptor extends DeviceUI {
 		addAnimator(new Animable() {
 			private BufferedImage glow = ResourceManager.loadImage("glow.png", 0).get(0);
 
-			private void drawGlow(Graphics2D g) {
+			private void drawGlow(Graphics2D g, int w, int h) {
 				Graphics2D gx = (Graphics2D) g.create();
-				gx.translate(-glow.getWidth() / 2, -glow.getHeight() / 2);
-				gx.drawImage(ResourceManager.applyAldebo(glow, color, intensity), -2, -2, null);
+				gx.translate(-w / 2, -h / 2);
+				gx.drawImage(
+						ResourceManager.applyAldebo(glow, color, intensity).getScaledInstance(w, h, Image.SCALE_SMOOTH),
+						0, 0, null);
 				gx.dispose();
 			}
+
 
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(getWidth() / 2, getHeight() / 2);
-				drawGlow(gx);
+				drawGlow(gx,100,100);
 				gx.setColor(Color.white);
 				Animable.writeCenteredText(
 						NumericUtilities.getPrefixed(ratedWattage, 3) + "W @"

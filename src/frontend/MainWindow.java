@@ -230,7 +230,8 @@ public class MainWindow extends JFrame implements ActionListener {
 		mapping.put("Load", new String[] { "Bulb" });
 		mapping.put("Switch", new String[] { "Switch" });
 		mapping.put("AC devices", new String[] { "Transformer" });
-		mapping.put("Semiconductor devices", new String[] { "Diode" });
+		mapping.put("Semiconductor devices", new String[] { "Diode", "Led" });
+		mapping.put("Displays", new String[] { "SevenSegDsp" });
 		setComponentList(mapping);
 
 		deviceScrollPane.setViewportView(tree);
@@ -309,9 +310,13 @@ public class MainWindow extends JFrame implements ActionListener {
 
 		this.setVisible(true);
 		setListeners();
-		slider.setLogValue(SimUiManager.speed);
+		slider.setLogValue(Driver.getDriver().speed);
 	}
-
+	public void refreshDescription() {
+		descriptionPanel.removeAll();
+		descriptionPanel.getParent().revalidate();
+		descriptionPanel.repaint();
+	}
 	void setComponentList(HashMap<String, String[]> mapping) {
 		tree = new JTree();
 		tree.setBackground(new Color(20, 20, 20));
@@ -369,7 +374,7 @@ public class MainWindow extends JFrame implements ActionListener {
 				if (clickedNode != null)
 					if (clickedNode.getChildCount() == 0) {
 						if (e.getClickCount() == 2) {
-							SimUiManager.addComponent(clickedNode.toString(),
+							Driver.getDriver().addComponent(clickedNode.toString(),
 									renderCanvas.screenToLocalPoint(
 											NumericUtilities.addPoint(new Point(200, renderCanvas.getHeight() / 2),
 													renderCanvas.getLocationOnScreen())));
@@ -387,13 +392,13 @@ public class MainWindow extends JFrame implements ActionListener {
 	}
 
 	protected void speedChanged() {
-		SimUiManager.speed = slider.getLogValue();
-		speedLabel.setText("1 sec = " + NumericUtilities.getPrefixed(SimUiManager.speed, 3) + "s");
+		Driver.getDriver().speed = slider.getLogValue();
+		speedLabel.setText("1 sec = " + NumericUtilities.getPrefixed(Driver.getDriver().speed, 3) + "s");
 	}
 
 	protected void stopButton() {
 		System.out.println("Stop button clicked");
-		SimUiManager.stopSimulation();
+		Driver.getDriver().stopSimulation();
 	}
 
 	protected void snapShotButton() {
@@ -402,7 +407,7 @@ public class MainWindow extends JFrame implements ActionListener {
 
 	public void runButton() {
 		System.out.println("Run button clicked");
-		SimUiManager.StartSimulation();
+		Driver.getDriver().StartSimulation();
 	}
 
 	public void fullScreenButton() {

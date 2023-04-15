@@ -8,24 +8,28 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-
 import utilities.NumericUtilities;
 
 public interface Animable {
 	abstract void animate(Graphics g);
 
 	public static final Font globalFont = new Font(Font.SANS_SERIF, Font.PLAIN, 15);
+	public static final double MIN_VAL = 1e-9;
 
 	public static void drawArrow(Graphics2D g, int x, int y, double magnitude, double rotation) {
 
-		BufferedImage arrow =ResourceManager.applyAldebo(ResourceManager.loadImage("arrow.png", 0).get(0), Color.green, 1);
+		BufferedImage arrow = ResourceManager.applyAldebo(ResourceManager.loadImage("arrow.png", 0).get(0), Color.green,
+				1);
 		Graphics2D gx = (Graphics2D) g.create();
 		gx.setColor(Color.cyan);
 		gx.translate(x, y);
 		gx.rotate(Math.toRadians(rotation));
-		Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(magnitude), 4) + "A", Animable.globalFont, gx,
-				new Point(0, -15));
+		if (Math.abs(magnitude) < MIN_VAL) {
+			magnitude = 0;
+		}
+		if (magnitude != 0)
+			Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(magnitude), 4) + "A", Animable.globalFont,
+					gx, new Point(0, -15));
 		gx.scale(Math.signum(magnitude), 1);
 		Image scaled = arrow.getScaledInstance(60, 30, Image.SCALE_FAST);
 		gx.translate(-scaled.getWidth(null) / 2, -scaled.getHeight(null) / 2);

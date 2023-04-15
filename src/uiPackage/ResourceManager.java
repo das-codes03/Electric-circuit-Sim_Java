@@ -12,6 +12,8 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
+import utilities.NumericUtilities;
+
 public class ResourceManager {
 	private static HashMap<File, ArrayList<BufferedImage>> images;
 	private static String parentFolder = "/resources/";
@@ -44,7 +46,7 @@ public class ResourceManager {
 			b = (int) (b * alRGB[2]);
 			Color.RGBtoHSB(r, g, b, alHSB);
 			alHSB[2] *= intensity;
-			a =(int) (Math.pow(a/255.0, 1/intensity)*255.0);
+			a =(int)(a *NumericUtilities.clamp01(intensity));
 			//normalize
 			if(intensity > 1) {
 			alHSB[0]/=alHSB[2];

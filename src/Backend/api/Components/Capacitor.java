@@ -16,9 +16,8 @@ public class Capacitor extends Component {
 		segments = new Circuit.Segment[1];
 		segments[0] = c.addSegment();
 		properties.put(CAPACITANCE, 1.0);
-		properties.put(BREAKDOWN_VOLTAGE, 1.0);
-		updateProperties();
-		updateState(t, 0);
+		properties.put(BREAKDOWN_VOLTAGE, 1e15);
+		states.put(CURRENT, 0.0);
 	}
 
 	@Override
@@ -31,7 +30,7 @@ public class Capacitor extends Component {
 	}
 
 	@Override
-	public Circuit.Node getExternalNode(int index) throws Exception {
+	public Circuit.Node getPin(int index) throws Exception {
 		if (index < 0 || index > 1) {
 			throw new Exception("Node index must be in [0-1]");
 		}

@@ -7,7 +7,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 import java.util.HashSet;
 
 import uiPackage.RenderingCanvas.currentMode;
@@ -18,11 +17,11 @@ public class NodeUI extends CanvasDrawable {
 	 */
 	private static final long serialVersionUID = 4558460949541414417L;
 	private static final int priority = 0;
-	public int radius = 5;
-	public final DeviceUI parentDevice;
+	public int radius;
+	public DeviceUI parentDevice;
 	private final int nodeIndex;
-	private Color nodeColor = Color.white;
-	private HashSet<Wire> incidentWires;
+	private Color nodeColor = Color.red;
+	public final HashSet<Wire> incidentWires;
 
 	public void setNodeColor(Color c) {
 		nodeColor = c;
@@ -42,12 +41,12 @@ public class NodeUI extends CanvasDrawable {
 	}
 
 	public NodeUI(Point p, RenderingCanvas canvas) {
-		this(p, canvas, 5, null, 0);
+		this(p, canvas, 10, null, 0);
 	}
 
 	@Override
 	public Point getLocationOnScreen() {
-		// TODO Auto-generated method stub
+		
 //	
 		return null;
 	}
@@ -59,7 +58,7 @@ public class NodeUI extends CanvasDrawable {
 
 	@Override
 	public void setLocation(int x, int y) {
-		// TODO Auto-generated method stub
+		
 		super.setLocation(x, y);
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
@@ -83,7 +82,7 @@ public class NodeUI extends CanvasDrawable {
 
 	@Override
 	Rectangle getTransformedBounds() {
-		// TODO Auto-generated method stub
+		
 		regions.clear();
 		AffineTransform at = new AffineTransform();
 		var x = getX() - radius;
@@ -95,7 +94,7 @@ public class NodeUI extends CanvasDrawable {
 
 	@Override
 	public void update(Graphics g) {
-		// TODO Auto-generated method stub
+		
 		Graphics2D gx = (Graphics2D) g.create();
 		getTransformedBounds();
 		gx.translate(getX() - radius, getY() - radius);
@@ -105,7 +104,7 @@ public class NodeUI extends CanvasDrawable {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 //		System.out.println("Node clicked");
 		if (canvas.mode != currentMode.MAKE_WIRE) {
 			canvas.mode = currentMode.MAKE_WIRE;
@@ -127,39 +126,46 @@ public class NodeUI extends CanvasDrawable {
 		}
 	}
 
+	public void remove() {
+		canvas.objectsMap.remove(this);
+		for(var w : incidentWires) {
+			w.removeNode(this);
+		}
+	}
+
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public int getPriority() {
-		// TODO Auto-generated method stub
+		
 		return priority;
 	}
 

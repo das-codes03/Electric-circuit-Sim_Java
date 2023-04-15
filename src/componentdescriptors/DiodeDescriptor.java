@@ -45,9 +45,7 @@ public class DiodeDescriptor extends DeviceUI {
 				gx.translate(50, 50);
 				gx.setColor(Color.white);
 
-				Animable.writeCenteredText(NumericUtilities.getPrefixed(Math.abs(current), 4) + "A",
-						Animable.globalFont, gx, new Point(0, -50));
-				Animable.drawArrow(gx, 0, -25, current, 0.0);
+				Animable.drawArrow(gx, 0, -30, current, 0.0);
 //				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
 //						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
 ////				String dir = "+  -";

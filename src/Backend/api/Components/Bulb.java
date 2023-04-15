@@ -17,6 +17,8 @@ public class Bulb extends Component {
 		segments[0] = c.addSegment();
 		properties.put(RATED_VOLTAGE, 1.0);
 		properties.put(RATED_WATTAGE, 1.0);
+		states.put(INTENSITY, 0.0);
+		states.put(CURRENT, 0.0);
 		updateProperties();
 		updateState(t, 0);
 	}
@@ -24,16 +26,16 @@ public class Bulb extends Component {
 	@Override
 	public void updateState(double t, double dt) {
 		super.updateState(t, dt);
-		states.put(CURRENT, segments[0].getCurrent());
 		segments[0].setResistance( Math.pow((double) properties.get(RATED_VOLTAGE), 2)
 				/ (double) properties.get(RATED_WATTAGE));
 		double power = segments[0].getCurrent() * segments[0].getCurrent()*segments[0].getResistance(); 
 		var intensity =power / (double) properties.get(RATED_WATTAGE);
 		states.put(INTENSITY, intensity);
+		states.put(CURRENT, segments[0].getCurrent());
 	}
 
 	@Override
-	public Circuit.Node getExternalNode(int index) throws Exception {
+	public Circuit.Node getPin(int index) throws Exception {
 		if (index < 0 || index > 1) {
 			throw new Exception("Node index must be in [0-1]");
 		}

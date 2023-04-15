@@ -18,9 +18,9 @@ public class Wire extends CanvasDrawable {
 	private static final long serialVersionUID = -4130602527644480994L;
 	private static final int priority = 1;
 	public Vector<NodeUI> nodes;
-	private Color wireColor = Color.white;
-	public double wireThickness = 2;
-	public double wireBoundWidth = 5;
+	private Color wireColor = new Color(255, 174, 0);
+	public double wireThickness = 5;
+	public double wireBoundWidth = 10;
 
 	public void addNode(NodeUI n) {
 		if (n == null)
@@ -31,9 +31,17 @@ public class Wire extends CanvasDrawable {
 		canvas.objectsMap.store(this);
 		canvas.bringToFront(this);
 	}
+	public void removeNode(NodeUI n) {
+		nodes.remove(n);
+		n.incidentWires.remove(this);
+		getTransformedBounds();
+		canvas.objectsMap.store(this);
+		canvas.bringToFront(this);
+	}
 	public boolean contains(NodeUI node) {
 		return nodes.contains(node);
 	}
+
 	public void setWire(Vector<NodeUI> nodes) {
 		canvas.objectsMap.remove(this);
 		this.nodes = nodes;
@@ -106,7 +114,18 @@ public class Wire extends CanvasDrawable {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		canvas.add(new DeviceToolbox(this));
+		canvas.revalidate();
+	}
 
+	public void remove() {
+		canvas.objectsMap.remove(this);
+		for (var n : nodes) {
+			n.incidentWires.remove(this);
+			if(n.incidentWires.size()== 0 && n.parentDevice == null) {
+				n.remove();
+			}
+		}
 	}
 
 	@Override

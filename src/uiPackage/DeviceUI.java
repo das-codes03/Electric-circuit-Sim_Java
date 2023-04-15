@@ -2,26 +2,21 @@ package uiPackage;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import frontend.SimUiManager;
+import frontend.Driver;
 import frontend.SimulationEvent;
 import uiPackage.RenderingCanvas.currentMode;
 
@@ -72,14 +67,15 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public int getPriority() {
 		return priority;
 	}
-
-	private static Map<String, BufferedImage[]> sharedImageMemory = new HashMap<>();
 	private Point lastClickedLocalSpace;
 	/** Image source. */
 	private ArrayList<BufferedImage> rawimage;
 	private double rotation = 00d; // in degrees
 	protected Map<NodeUI, Point> nodes; // node_reference->localposition
 
+	public double getRotation() {
+		return rotation;
+	}
 	public DeviceUI setRotation(double r) {
 		rotation = r;
 		getTransformedBounds();
@@ -195,7 +191,9 @@ public abstract class DeviceUI extends CanvasDrawable {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-
+		displayProperties(Driver.getDriver().mainWin.descriptionPanel);
+		canvas.add(new DeviceToolbox(this));
+		canvas.revalidate();
 	}
 
 	@Override
@@ -222,8 +220,14 @@ public abstract class DeviceUI extends CanvasDrawable {
 	}
 
 	public void remove() {
-		SimUiManager.components.remove(this);
+
 		canvas.objectsMap.remove(this);
+		for(var n : nodes.keySet()) {
+			n.parentDevice = null;
+			if(n.incidentWires.size() == 0) {
+				canvas.objectsMap.remove(n);
+			}
+		}
 	}
 
 	public abstract void revalidateProperties(SimulationEvent evt);

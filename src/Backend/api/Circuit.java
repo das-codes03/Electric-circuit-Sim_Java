@@ -19,15 +19,16 @@ public class Circuit {
 	private RealMatrix _i_mat; // current vector [nx1]
 	private LUDecomposition solver = null; // solver
 	// ********************************
-	private static final double MIN_RESISTANCE = 1e-30;
-	private static final double MIN_INDUCTANCE = 1e-30;
-	private static final double MIN_EMF = 1e-30;
+	private static final double MIN_RESISTANCE = 1e-50;
+	private static final double MIN_INDUCTANCE = 1e-50;
+	private static final double MIN_EMF = 1e-50;
 
 	public class Node {
 		private Set<Segment> incidentSegments;
 		private boolean visited;
 		private int depth;
 		private Segment backtrackSeg;
+
 		private Node() {
 			visited = false;
 			depth = 0;
@@ -162,7 +163,14 @@ public class Circuit {
 		this.loops = new ArrayList<>();
 	}
 
-	Node mergeNodes(ArrayList<Node> nArray) {
+	public Node mergeNodes(Node n0, Node n1) {
+		var temp = new ArrayList<Node>();
+		temp.add(n0);
+		temp.add(n1);
+		return mergeNodes(temp);
+	}
+
+	public Node mergeNodes(ArrayList<Node> nArray) {
 		if (nArray == null)
 			throw new NullPointerException();
 		Node nTemp = null;
@@ -181,7 +189,7 @@ public class Circuit {
 			for (Segment s : curr.incidentSegments) {
 				if (s.n0 == curr) {
 					s.n0 = nTemp;
-				} else {
+				} else if (s.n1 == curr) {
 					s.n1 = nTemp;
 				}
 			}
@@ -300,6 +308,11 @@ public class Circuit {
 		var _rhs = (_l_mat.multiply(_i_mat)).add(_e_mat.scalarMultiply(dt));
 		solver = new LUDecomposition(_lhs, 0);
 		_i_mat = solver.getSolver().solve(_rhs);
+		for (int i = 0; i < _i_mat.getRowDimension(); ++i) {
+			if (Double.isNaN(_i_mat.getEntry(i, 0))) {
+				_i_mat.setEntry(i, 0, 0);
+			}
+		}
 		return _i_mat;
 	}
 
@@ -317,12 +330,12 @@ public class Circuit {
 					mult *= -1;
 				}
 				s.current += _i_mat.getEntry(i, 0) * mult;
-				s.charge += -_i_mat.getEntry(i, 0) * dt * mult;
 
 			}
 		}
 		for (var s : segments) {
-			if (Math.abs(s.charge / s.capacitance) > s.breakdownVoltage) {
+			s.charge += -s.current * dt;
+			if (Math.abs(s.charge / s.capacitance) >= s.breakdownVoltage) {
 				s.charge = 0;
 			}
 		}

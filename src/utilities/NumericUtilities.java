@@ -25,17 +25,18 @@ public class NumericUtilities {
 	}
 	private static final int MIN_EXP = -15;
 	private static final int MAX_EXP = 15;
-
+	public static double clamp(double val, double min, double max) {
+		return Math.max(min, Math.min(val, max));
+	}
+	public static double clamp01(double val) {
+		return clamp(val,0,1);
+	}
 	public static double getRounded(double d, int sigDigits) {
-		if (d == 0)
+		if (d == 0 || Double.isNaN(d) || Double.isInfinite(d))
 			return 0;
-		var sign = Math.signum(d);
-		d = Math.abs(d);
-		int k = (int) Math.log10(d);
-		d *= Math.pow(10, k);
 		BigDecimal bd = new BigDecimal(d);
-		bd = bd.round(new MathContext(sigDigits));
-		return sign * bd.doubleValue() / Math.pow(10, k);
+		bd = bd.round(new MathContext(sigDigits+1));
+		return bd.doubleValue();
 	}
 
 	public static String getPrefixed(double val, int sigDigits) {
@@ -43,13 +44,14 @@ public class NumericUtilities {
 	}
 
 	public static String getPrefixed(double val, int sigDigits, boolean clipZeros) {
+		if (Math.abs(val) > Math.pow(10, MAX_EXP))
+			return "OVERLOAD ";
+
 		String str = "";
 		int x = 0;
 		val = getRounded(val, sigDigits);
 		if (Math.abs(val) < Math.pow(10, MIN_EXP))
 			val = 0;
-		if (Math.abs(val) > Math.pow(10, MAX_EXP))
-			val = (val < 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
 
 		var sign = Math.signum(val);
 		val = Math.abs(val);
@@ -57,7 +59,7 @@ public class NumericUtilities {
 			x = 3 * ((int) (Math.log10(val / (val < 1 ? 999 : 1)) / 3));
 		val /= Math.pow(10, x);
 
-		str = new DecimalFormat("0.######").format(val);
+		str = String.format("%.30f", val);
 		var temp = str.substring(0, Math.min(str.length(), sigDigits + 1));
 //		if (!clipZeros)
 //			for (int i = temp.length(); i <= sigDigits; ++i) {
