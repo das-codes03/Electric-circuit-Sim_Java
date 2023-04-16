@@ -1,7 +1,11 @@
 package Backend.api;
 
 import java.util.*;
+
+import javax.swing.JOptionPane;
+
 import org.apache.commons.math3.linear.*;
+import org.apache.commons.math3.util.FastMath;
 
 public class Circuit {
 
@@ -17,11 +21,10 @@ public class Circuit {
 	private RealMatrix _l_mat; // inductance matrix [nxn]
 	private RealMatrix _e_mat; // emf vector [nx1]
 	private RealMatrix _i_mat; // current vector [nx1]
-	private LUDecomposition solver = null; // solver
 	// ********************************
-	private static final double MIN_RESISTANCE = 1e-50;
-	private static final double MIN_INDUCTANCE = 1e-50;
-	private static final double MIN_EMF = 1e-50;
+	private static final double MIN_RESISTANCE = 1e-30;
+	private static final double MIN_INDUCTANCE = 1e-30;
+	private static final double SHORT_CIRCUIT_CURRENT = 1e50;
 
 	public class Node {
 		private Set<Segment> incidentSegments;
@@ -303,16 +306,24 @@ public class Circuit {
 		}
 	}
 
-	RealMatrix solveCurrent(double dt) {
-		var _lhs = (_r_mat.scalarMultiply(dt)).add(_l_mat);
-		var _rhs = (_l_mat.multiply(_i_mat)).add(_e_mat.scalarMultiply(dt));
-		solver = new LUDecomposition(_lhs, 0);
+	RealMatrix solveCurrent(double dt) throws Exception {
+		if(loops.size() == 0)return _i_mat;
+		var _lhs = (_r_mat).add(_l_mat.scalarMultiply(1/dt));
+		var _rhs = (_l_mat.multiply(_i_mat.scalarMultiply(dt))).add(_e_mat);
+
+		var solver  = new CholeskyDecomposition(_lhs,Double.POSITIVE_INFINITY,0);
+
 		_i_mat = solver.getSolver().solve(_rhs);
 		for (int i = 0; i < _i_mat.getRowDimension(); ++i) {
-			if (Double.isNaN(_i_mat.getEntry(i, 0))) {
-				_i_mat.setEntry(i, 0, 0);
+			double curr = FastMath.abs(_i_mat.getEntry(i,0));
+			if(curr > SHORT_CIRCUIT_CURRENT) {
+				throw new Exception("Circuit overloaded, potential short-circuit: " + curr+ " A");
+			}
+			if(Double.isNaN(curr)) {
+				throw new Exception("NaN current. Terminating simulation");
 			}
 		}
+		
 		return _i_mat;
 	}
 
@@ -320,7 +331,7 @@ public class Circuit {
 		for (Segment s : segments) {
 			s.current = 0;
 		}
-		for (int i = 0; i < _i_mat.getRowDimension(); ++i) {
+		for (int i = 0; i < loops.size(); ++i) {
 			for (Segment s : loops.get(i).segments.keySet()) {
 				int mult = 1;
 				if (loops.get(i).segments.get(s) == false) {
@@ -372,7 +383,8 @@ public class Circuit {
 					if (loops.get(b).segments.get(s) != loops.get(i).segments.get(s)) {
 						mult = -1;
 					}
-					_l_mat.setEntry(i, b, _l_mat.getEntry(i, b) + s.inductance * mult);
+					double ind = FastMath.max(s.inductance, MIN_INDUCTANCE);
+					_l_mat.setEntry(i, b, _l_mat.getEntry(i, b) + ind * mult);
 				}
 			}
 		}
@@ -389,7 +401,8 @@ public class Circuit {
 					if (loops.get(b).segments.get(s) != loops.get(i).segments.get(s)) {
 						mult = -1;
 					}
-					_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + s.resistance * mult);
+					var res = Math.max(s.resistance, MIN_RESISTANCE);
+					_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + res * mult);
 					if (s.capacitance != 0) {
 						_r_mat.setEntry(i, b, _r_mat.getEntry(i, b) + dt / s.capacitance * mult);
 					}
@@ -399,27 +412,11 @@ public class Circuit {
 		return _r_mat;
 	}
 
-	ArrayList<Loop> shortCircuitTest() {
-		ArrayList<Loop> scLoops = new ArrayList<>();
-		for (int i = 0; i < this.loops.size(); ++i) {
-			boolean flag = false;
-			if (Math.abs(_e_mat.getEntry(i, 0)) > MIN_EMF)
-				flag = true;
-			if (flag) {
-				if (_r_mat.getEntry(i, i) > MIN_RESISTANCE || _l_mat.getEntry(i, i) > MIN_INDUCTANCE)
-					flag = false;
-			}
-			if (flag) {
-				scLoops.add(loops.get(i));
-			}
-		}
-		return scLoops;
-	}
 
 	void initialiseCircuit() {
 		getLoops(loops);
 		System.out.println("Circuit was initialised. " + loops.size() + " loops generated.");
-		int n = loops.size();
+		int n = Math.max(loops.size(),1);
 		_r_mat = MatrixUtils.createRealMatrix(new double[n][n]);
 		_l_mat = MatrixUtils.createRealMatrix(new double[n][n]);
 		_i_mat = MatrixUtils.createRealMatrix(new double[n][1]);

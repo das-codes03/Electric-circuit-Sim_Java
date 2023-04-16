@@ -6,11 +6,12 @@ import java.util.HashMap;
 import javax.naming.directory.AttributeInUseException;
 import javax.swing.JOptionPane;
 
+import org.apache.commons.math3.linear.RealMatrix;
+
 import frontend.Driver;
 
 public class SimulatorAPI implements Runnable {
-	public class ShortCircuitException extends Exception{
-	}
+
 	private final HashMap<Integer, Component> identifiers;
 
 	public class SimulationState {
@@ -43,10 +44,11 @@ public class SimulatorAPI implements Runnable {
 		return data;
 	}
 
-	private long simulateStep(double dt, int substeps) throws ShortCircuitException {
+	private long simulateStep(double dt, int substeps) throws Exception {
 		long t1 = System.nanoTime();
 		int t = substeps;
 		double rDt = dt / substeps;
+		RealMatrix r = null;
 		while (t-- > 0) {
 			if (!initialized) {
 				c.initialiseCircuit();
@@ -58,11 +60,8 @@ public class SimulatorAPI implements Runnable {
 			c.generateEmfMatrix();
 			c.generateResistanceMatrix(rDt);
 			c.generateInductanceMatrix();
-			var scTest = c.shortCircuitTest();
-//			if(scTest.size() > 0) {
-//				throw new ShortCircuitException();
-//			}
-			c.solveCurrent(rDt);
+			
+			r = c.solveCurrent(rDt);
 			c.updateSegments(rDt);
 			timeElapsed += rDt;
 			for (var data : identifiers.values()) {
@@ -71,6 +70,7 @@ public class SimulatorAPI implements Runnable {
 		}
 		state.stateData = getStateData();
 		state.timeStamp = timeElapsed;
+//		System.out.println(r);
 		long t2 = System.nanoTime();
 		return t2 - t1;
 	}
@@ -94,10 +94,13 @@ public class SimulatorAPI implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	enum mode {
+	public enum mode {
 		RUNNING, PAUSED, TERMINATED
 	}
 	private mode CurrMode = mode.TERMINATED;
+	public mode getMode() {
+		return CurrMode;
+	}
 	public void play() {
 		CurrMode = mode.RUNNING;
 	}
@@ -127,7 +130,6 @@ public class SimulatorAPI implements Runnable {
 	}
 
 	public void run(){
-		play();
 		int simulationRate = 100;
 		int stepMS = (int) (1000.0 / simulationRate);
 		long elapsed = 0;
@@ -137,9 +139,9 @@ public class SimulatorAPI implements Runnable {
 			timeScale = Driver.getDriver().speed;
 			try {
 				elapsed = simulateStep(timeScale/simulationRate, 10);
-			} catch (ShortCircuitException e1) {
+			} catch (Exception e1) {
 				System.err.println("SHORT");
-				JOptionPane.showMessageDialog(null, "The circuit may be shorted! Please check circuit.", "Short circuit detected", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null,e1.getMessage(), "Simulation failure", JOptionPane.ERROR_MESSAGE);
 				CurrMode = mode.TERMINATED;
 				return;
 			}

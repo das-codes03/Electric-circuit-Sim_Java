@@ -106,6 +106,17 @@ public class MainWindow extends JFrame implements ActionListener {
 
 		btnSnapshot.setBackground(c3);
 		controlPanelRender.add(btnSnapshot);
+		
+		JButton fitBtn = new JButton("Fit to screen");
+		fitBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				renderCanvas.zoomToFit();
+				
+			}
+		});
+		controlPanelRender.add(fitBtn);
 		renderCanvas = new RenderingCanvas(this);
 		renderCanvas.setBackground(canvasBg);
 		RenderingArea.add(renderCanvas, BorderLayout.CENTER);
@@ -265,24 +276,24 @@ public class MainWindow extends JFrame implements ActionListener {
 		JMenuBar menuBar = new JMenuBar();
 		this.setJMenuBar(menuBar);
 
-		JMenu mnNewMenu = new JMenu("File");
-		menuBar.add(mnNewMenu);
+		JMenu fileMenu = new JMenu("File");
+		menuBar.add(fileMenu);
 
-		JMenuItem mntmNewMenuItem = new JMenuItem("Save");
-		mntmNewMenuItem.addActionListener(new ActionListener() {
+		JMenuItem saveMenuBtn = new JMenuItem("Save");
+		saveMenuBtn.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Driver.getDriver().save();
 			}
 		});
-		mnNewMenu.add(mntmNewMenuItem);
+		fileMenu.add(saveMenuBtn);
 
-		JMenuItem mntmNewMenuItem_1 = new JMenuItem("New");
-		mnNewMenu.add(mntmNewMenuItem_1);
+		JMenuItem newMenuBtn = new JMenuItem("New");
+		fileMenu.add(newMenuBtn);
 
-		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Open");
-		mntmNewMenuItem_2.addActionListener(new ActionListener() {
+		JMenuItem openMenuBtn = new JMenuItem("Open");
+		openMenuBtn.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -290,16 +301,16 @@ public class MainWindow extends JFrame implements ActionListener {
 
 			}
 		});
-		mnNewMenu.add(mntmNewMenuItem_2);
+		fileMenu.add(openMenuBtn);
 
-		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Exit");
-		mnNewMenu.add(mntmNewMenuItem_3);
+		JMenuItem exitMenuBtn = new JMenuItem("Exit");
+		fileMenu.add(exitMenuBtn);
 
-		JMenu mnNewMenu_2 = new JMenu("View");
-		menuBar.add(mnNewMenu_2);
+		JMenu viewMenu = new JMenu("View");
+		menuBar.add(viewMenu);
 
 		JMenu mnNewMenu_3 = new JMenu("Theme");
-		mnNewMenu_2.add(mnNewMenu_3);
+		viewMenu.add(mnNewMenu_3);
 		ButtonGroup themeGrp = new ButtonGroup();
 		JRadioButtonMenuItem rdbtnmntmNewRadioItem_1 = new JRadioButtonMenuItem("Light");
 		mnNewMenu_3.add(rdbtnmntmNewRadioItem_1);
@@ -321,7 +332,27 @@ public class MainWindow extends JFrame implements ActionListener {
 
 		JMenuItem mntmNewMenuItem_6 = new JMenuItem("Stop");
 		mnNewMenu_1.add(mntmNewMenuItem_6);
-
+		JMenu marketPlacemenu = new JMenu("Marketplace");
+		menuBar.add(marketPlacemenu);
+		
+		JMenuItem importBtn = new JMenuItem("Import circuit");
+		importBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new MarketplaceWindow();				
+			}
+		});
+		marketPlacemenu.add(importBtn);
+		JMenuItem uploadBtn = new JMenuItem("Upload circuit");
+		uploadBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new UploadCircuitWizard();				
+			}
+		});
+		marketPlacemenu.add(uploadBtn);
 		this.setVisible(true);
 		setListeners();
 		slider.setLogValue(Driver.getDriver().speed);

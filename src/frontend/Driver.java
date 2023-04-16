@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JFileChooser;
@@ -134,12 +135,9 @@ public class Driver {
 		mainWin = new MainWindow();
 	}
 
-	public void saveCircuit(String pathName) {
-		//
-	}
-
 	public void createFromData(PackedData data) {
 		boolean incompleteProperties = false;
+		try {
 		// put all components with their properties and location, position
 		HashMap<Integer, DeviceUI> tempMap = new HashMap<>();
 		for (var c : data.components.keySet()) {
@@ -186,6 +184,9 @@ public class Driver {
 			}
 			addWire(w);
 		}
+		}catch(Exception e) {
+			JOptionPane.showMessageDialog(mainWin, "Error loading data");
+		}
 		// all wires are connected!
 		if(incompleteProperties) {
 			JOptionPane.showMessageDialog(null, "Some components were not properly imported. Please recheck circuit.");
@@ -199,15 +200,13 @@ public class Driver {
 			var data = (PackedData) in.readObject();
 			in.close();
 			fileIn.close();
-
-//	         CircuitData cdat = new CircuitData();
-//	         cdat.unpackData(data);
 			createFromData(data);
 		} catch (IOException i) {
 			i.printStackTrace();
+			JOptionPane.showMessageDialog(mainWin, "Open failure");
 			return;
 		} catch (ClassNotFoundException c) {
-			System.out.println("Employee class not found");
+			JOptionPane.showMessageDialog(mainWin, "Open failure");
 			c.printStackTrace();
 			return;
 		}
@@ -228,6 +227,7 @@ public class Driver {
 			System.out.printf("Serialized data is saved in " + f);
 		} catch (IOException i) {
 			i.printStackTrace();
+			JOptionPane.showMessageDialog(mainWin, "Couldn't save circuit! Please try again.", "Saving failed", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -257,13 +257,11 @@ public class Driver {
 	}
 
 	public void save() {
-
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileFilter(new FileFilter() {
 			public String getDescription() {
 				return "Circuit (*.sim)";
 			}
-
 			public boolean accept(File f) {
 				if (f.isDirectory()) {
 					return true;
@@ -273,21 +271,25 @@ public class Driver {
 				}
 			}
 		});
-
 		if (fileChooser.showSaveDialog(mainWin) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
-//			if(!file.getName().endsWith(".sim")) {
-//				file.
-//			}
+			if(!file.getName().endsWith(".sim")) {
+				file = new File(file.getPath()+".sim");
+			}
 			saveToFile(file);
-			// load from file
 		}
-
 	}
-
+	public PackedData getPackedData() {
+		return new PackedData(wires, components);
+	}
+	
 	public static void main(String[] args) {
 
 		new Driver();
+		
+			UserManager.login("dummy", "1234");
+//			UploadCircuitWizard.uploadCircuit(UserManager.getUserId(), "test circuit", "this is a test circuit", new PackedData(driver.wires, driver.components), null, true);
+getDriver().createFromData(MarketplaceWindow.getCircuit(3));
 //		String test = "";
 //		for (var s : args) {
 //			test += s + "\n";

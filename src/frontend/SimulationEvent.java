@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import Backend.api.SimulatorAPI;
+import Backend.api.SimulatorAPI.mode;
 import uiPackage.DeviceUI;
 import uiPackage.NodeUI;
 import uiPackage.RenderingCanvas;
@@ -59,13 +60,14 @@ public class SimulationEvent implements Runnable {
 
 	@Override
 	public void run() {
+		sim.play();
 		Thread thr = new Thread(sim);
 		thr.start();
 
 		int framesPerSecond = 120;
 		int stepMS = (int) (1000.0 / framesPerSecond);
 		double lastCaptured = 0;
-		while (running && thr.isAlive()) {
+		while (running && sim.getMode() != mode.TERMINATED) {
 			if (thr.isAlive() == false) {
 				System.out.println("Died");
 			}
@@ -102,7 +104,8 @@ public class SimulationEvent implements Runnable {
 			}
 
 		}
-		sim.stop();
+		Driver.getDriver().stopSimulation();
+		
 	}
 
 }

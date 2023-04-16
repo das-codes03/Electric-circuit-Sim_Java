@@ -53,7 +53,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	// minimum layer till now
 	private long minLayer;
 	/** Size of each box in component grid. */
-	private int boxSize = 1000;
+	private int boxSize = 200;
 	double quality = 1;
 	// **Higher level, low quality, better performance.*/
 	double lodMultiplier = 5;
@@ -76,11 +76,41 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		return local;
 	}
 
+	public void zoomToFit() {
+		// get extreme boxes:
+		var bnds = objectsMap.getBoundingRange();
+		int minX = bnds[0];
+		int minY = bnds[1];
+		int maxX = bnds[2];
+		int maxY = bnds[3];
+
+		// compute size of rect
+		double w = (maxX - minX + 1) * objectsMap.boxSize;
+		double h = (maxY - minY + 1) * objectsMap.boxSize;
+
+		// get target scale
+		double tarScale = Math.min(getWidth() / w,  getHeight() / h);
+		
+		//we need to get extra margin
+		double margX = getWidth()/tarScale-w;
+		double margY = getHeight()/tarScale-h;
+		
+//		double offX = (maxX-minX)/2.0;
+		camTransform.setToTranslation(minX * objectsMap.boxSize-margX/2, minY * objectsMap.boxSize-margY/2);
+
+		camTransform.scale(tarScale, tarScale);
+		//next get offset
+		Render();
+
+	}
+
 	/** Data structure to store components in grid. */
 	class ComponentMapping {
 		class MapBox {
 			public MapBox(int x, int y) {
 				this.components = new Vector<>();
+				this.x = x;
+				this.y = y;
 				boxRect = generateRect(x, y);
 			}
 
@@ -88,6 +118,8 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				return boxRect;
 			}
 
+			private final int x;
+			private final int y;
 			private final Rectangle boxRect;
 			private final Vector<CanvasDrawable> components;
 		}
@@ -110,12 +142,18 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 			try {
 				for (var b : comp.gridLocations) {
 					b.components.remove(comp);
-					// TODO: delete entire box if components is empty
+					if (b.components.isEmpty()) {
+						discard(b.x, b.y);
+					}
 				}
 			} catch (NullPointerException e) {
 				System.err.println("Component not found!");
 				e.printStackTrace();
 			}
+		}
+
+		private void discard(int x, int y) {
+			mMap.remove(new Point(x, y));
 		}
 
 		private MapBox set(int x, int y, CanvasDrawable comp) {
@@ -125,8 +163,24 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 				mMap.put(pt, new MapBox(x, y));
 				box = mMap.get(pt);
 			}
+
 			box.components.add(comp);
 			return box;
+		}
+
+		public int[] getBoundingRange() {
+			int[] coords = new int[4]; // minX, minY, maxX, maxY
+			if (mMap.isEmpty())
+				return coords;
+			coords[0] = coords[1] = Integer.MAX_VALUE;
+			coords[2] = coords[3] = Integer.MIN_VALUE;
+			for (var b : mMap.keySet()) {
+				coords[0] = Math.min(b.x, coords[0]);
+				coords[1] = Math.min(b.y, coords[1]);
+				coords[2] = Math.max(b.x, coords[2]);
+				coords[3] = Math.max(b.y, coords[3]);
+			}
+			return coords;
 		}
 
 		private boolean checkInBox(Shape s, int xi, int yi) {

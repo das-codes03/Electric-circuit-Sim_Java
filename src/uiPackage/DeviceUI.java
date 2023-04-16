@@ -31,10 +31,10 @@ public abstract class DeviceUI extends CanvasDrawable {
 	private ArrayList<BufferedImage> rawimage;
 	private double rotation = 00d; // in degrees
 	protected Map<NodeUI, Point> nodes; // node_reference->localposition
-	
+
 	public NodeUI getNode(int index) {
-		for(var n : nodes.keySet()) {
-			if(n.getNodeIndex() == index) {
+		for (var n : nodes.keySet()) {
+			if (n.getNodeIndex() == index) {
 				return n;
 			}
 		}
@@ -44,10 +44,11 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public String getBackendClassName() {
 		return backendClassName;
 	}
+
 	public String getDescriptorName() {
 		String s = getClass().getSimpleName();
 		s = s.substring(0, s.length() - Driver.descriptorSuffix.length());
-		
+
 		return s;
 	}
 
@@ -87,10 +88,11 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public int getPriority() {
 		return priority;
 	}
-	
+
 	public double getRotation() {
 		return rotation;
 	}
+
 	public DeviceUI setRotation(double r) {
 		rotation = r;
 		getTransformedBounds();
@@ -143,7 +145,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 	}
 
 	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, Point[] nodes, String typeName) {
-		
+
 		super(canvas);
 		this.nodes = new HashMap<>();
 		this.rawimage = new ArrayList<>();
@@ -167,12 +169,17 @@ public abstract class DeviceUI extends CanvasDrawable {
 
 	boolean flag = false;
 
+	@Override
 	public void update(Graphics g) {
 		Graphics2D gx = (Graphics2D) g.create();
 		int lod = Math.max(Math.min(canvas.getLOD(), LOD_COUNT - 1), 0);
-//		System.out.println(lod);
 		BufferedImage img = rawimage.get(lod);
 		Rectangle bounds = getTransformedBounds(); // get bounding box
+		
+		//FOR DEBUGGING PURPOSE: display grid locations
+//		for(var b : gridLocations) {
+//			gx.draw(b.getBoxRect());
+//		}
 		gx.translate(bounds.getCenterX() - getWidth() / 2.0, bounds.getCenterY() - getHeight() / 2.0);
 		gx.rotate(Math.toRadians(rotation), getWidth() / 2.0, getHeight() / 2.0);
 		gx.drawImage(img, 0, 0, getWidth(), getHeight(), canvas);
@@ -238,9 +245,9 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public void remove() {
 
 		canvas.objectsMap.remove(this);
-		for(var n : nodes.keySet()) {
+		for (var n : nodes.keySet()) {
 			n.parentDevice = null;
-			if(n.incidentWires.size() == 0) {
+			if (n.incidentWires.size() == 0) {
 				canvas.objectsMap.remove(n);
 			}
 		}
@@ -249,6 +256,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public abstract HashMap<String, Object> readProperties();
 
 	public abstract void writeState(HashMap<String, Object> data);
+
 	public abstract void writeProperties(HashMap<String, Object> data);
 
 }

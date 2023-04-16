@@ -9,6 +9,8 @@ import java.util.HashMap;
 public class NumericUtilities {
 	private static HashMap<Integer, String> unitMap = new HashMap<>(); // Map<x,suffix> which means 10^x -> prefix
 	static {
+		unitMap.put(24, "Y");
+		unitMap.put(21, "Z");
 		unitMap.put(18, "E");
 		unitMap.put(15, "P");
 		unitMap.put(12, "T");
@@ -22,9 +24,11 @@ public class NumericUtilities {
 		unitMap.put(-12, "p");
 		unitMap.put(-15, "f");
 		unitMap.put(-18, "a");
+		unitMap.put(-21, "z");
+		unitMap.put(-24, "y");
 	}
-	private static final int MIN_EXP = -15;
-	private static final int MAX_EXP = 15;
+	private static final int MIN_EXP = -12;
+	private static final int MAX_EXP = 24;
 	public static double clamp(double val, double min, double max) {
 		return Math.max(min, Math.min(val, max));
 	}
