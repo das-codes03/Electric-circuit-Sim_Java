@@ -39,6 +39,7 @@ public class LedDescriptor extends DeviceUI {
 		super(canvas, "components/led.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0), }, "Led");
 		addAnimator(new Animable() {
 			private BufferedImage glow = ResourceManager.loadImage("glow.png", 0).get(0);
+
 			private void drawGlow(Graphics2D g, int w, int h) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(-w / 2, -h / 2);
@@ -52,7 +53,7 @@ public class LedDescriptor extends DeviceUI {
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(getWidth() / 2, getHeight() / 2);
-				drawGlow(gx,100,100);
+				drawGlow(gx, 100, 100);
 				gx.setColor(Color.white);
 				Animable.writeCenteredText(
 						NumericUtilities.getPrefixed(ratedWattage, 3) + "W @"
@@ -110,18 +111,22 @@ public class LedDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		current = (double) data.get(Bulb.CURRENT);
 		intensity = (double) data.get(Bulb.INTENSITY);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), Led.RATED_VOLTAGE, ratedVoltage);
-			evt.sim.setProperty(getID(), Led.RATED_POWER, ratedWattage);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data = new HashMap<>();
+		data.put(Led.RATED_VOLTAGE, ratedVoltage);
+		data.put(Led.RATED_POWER, ratedWattage);
+		return data;
+	}
+
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		ratedVoltage = (double) data.get(Led.RATED_VOLTAGE);
+		ratedWattage = (double) data.get(Led.RATED_POWER);
 	}
 }

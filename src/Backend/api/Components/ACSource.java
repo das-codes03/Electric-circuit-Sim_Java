@@ -30,10 +30,6 @@ public class ACSource extends Component {
 		states.put(CURRENT, current);
 	}
 
-	@Override
-	public void updateProperties() {
-
-	}
 
 	private static double getEmf(double amplitude, double phase, double hz, double t) {
 		return amplitude * Math.sin(2 * t * Math.PI * hz + Math.toRadians(phase));

@@ -19,8 +19,6 @@ public class Bulb extends Component {
 		properties.put(RATED_WATTAGE, 1.0);
 		states.put(INTENSITY, 0.0);
 		states.put(CURRENT, 0.0);
-		updateProperties();
-		updateState(t, 0);
 	}
 
 	@Override
@@ -42,8 +40,4 @@ public class Bulb extends Component {
 		return segments[0].getNode(index);
 	}
 
-	@Override
-	public void updateProperties() {
-
-	}
 }

@@ -1,27 +1,24 @@
 package frontend;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Vector;
-
-import javax.management.AttributeNotFoundException;
-import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.filechooser.FileFilter;
 
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
-import Backend.api.SimulatorAPI;
-import componentdescriptors.ResistorDescriptor;
+import frontend.CircuitData.PackedData;
 import uiPackage.NodeUI;
 import uiPackage.RenderingCanvas;
 import uiPackage.DeviceUI;
@@ -33,7 +30,8 @@ public class Driver {
 	private final ArrayList<DeviceUI> components = new ArrayList<>();
 	private final ArrayList<Wire> wires = new ArrayList<>();
 	public final MainWindow mainWin;
-
+	public static final String descriptorSuffix = "Descriptor";
+	public static final String descriptorPath = "componentdescriptors.";
 
 	public SimulationEvent s = null;
 	public double speed = 1;
@@ -43,12 +41,15 @@ public class Driver {
 		return running;
 	}
 
-	public void addComponent(String typeName, Point screenPos) {
+	public DeviceUI addComponent(String typeName, Point screenPos) {
 		try {
-			Class<DeviceUI> act = (Class<DeviceUI>) Class.forName("componentdescriptors." + typeName + "Descriptor");
+			Class<DeviceUI> act = (Class<DeviceUI>) Class.forName(descriptorPath + typeName + descriptorSuffix);
 			try {
-				components.add(act.getConstructor(RenderingCanvas.class, Point.class).newInstance(mainWin.renderCanvas,
-						screenPos));
+				var comp = act.getConstructor(RenderingCanvas.class, Point.class).newInstance(mainWin.renderCanvas,
+						screenPos);
+				components.add(comp);
+				Render();
+				return comp;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -59,17 +60,17 @@ public class Driver {
 					"Component not found", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
-		Render();
+		return null;
 	}
 
-	public void addComponent(String typeName) {
-		addComponent(typeName, new Point(0, 0));
+	public DeviceUI addComponent(String typeName) {
+		return addComponent(typeName, new Point(0, 0));
 	}
 
 	public void deleteComponent(DeviceUI comp) throws Exception {
 		int i = components.indexOf(comp);
 		if (i == -1)
-			throw new Exception("Component " + comp.getTypeName() + " not found.");
+			throw new Exception("Component " + comp.getBackendClassName() + " not found.");
 		comp.remove();
 		components.remove(comp);
 	}
@@ -133,8 +134,166 @@ public class Driver {
 		mainWin = new MainWindow();
 	}
 
+	public void saveCircuit(String pathName) {
+		//
+	}
+
+	public void createFromData(PackedData data) {
+		boolean incompleteProperties = false;
+		// put all components with their properties and location, position
+		HashMap<Integer, DeviceUI> tempMap = new HashMap<>();
+		for (var c : data.components.keySet()) {
+			var compInfo = data.components.get(c);
+			var comp = addComponent(compInfo.typeName, compInfo.position);
+			comp.setID(c);
+			comp.setRotation(compInfo.rotation);
+			try {
+			comp.writeProperties(compInfo.properties);
+			}catch(NullPointerException e) {
+				incompleteProperties = true;
+			}
+			// TODO: exception if already has same ID
+			tempMap.put(c, comp);
+		}
+
+		// time to connect them using wires!
+		ArrayList<NodeUI> tempArray = new ArrayList<>();
+		for (var c : data.connections) {
+			Wire w = new Wire(getDriver().mainWin.renderCanvas);
+			for (var n : c) {
+				if (n instanceof Object[]) { // this means this is a part of some device
+					var temp = (Object[]) n;
+					if (temp.length == 1) {
+						try {
+						w.addNode(tempArray.get((int)temp[0]));
+						}catch(Exception e) {
+							e.printStackTrace();
+						}
+					} else {
+						var compId = (int) ((Object[]) n)[0];
+						var nodeIndex = (int) ((Object[]) n)[1];
+						try {
+						w.addNode(tempMap.get(compId).getNode(nodeIndex));
+						}catch(Exception e) {
+							e.printStackTrace();
+						}
+					}
+				} else if (n instanceof Point) { // lone node so wire adds new node and takes it
+					var pt = new NodeUI((Point) n, getDriver().mainWin.renderCanvas);
+					tempArray.add(pt);
+					w.addNode(pt);
+				}
+			}
+			addWire(w);
+		}
+		// all wires are connected!
+		if(incompleteProperties) {
+			JOptionPane.showMessageDialog(null, "Some components were not properly imported. Please recheck circuit.");
+		}
+	}
+
+	private void openFromFile(File f) {
+		try {
+			FileInputStream fileIn = new FileInputStream(f);
+			ObjectInputStream in = new ObjectInputStream(fileIn);
+			var data = (PackedData) in.readObject();
+			in.close();
+			fileIn.close();
+
+//	         CircuitData cdat = new CircuitData();
+//	         cdat.unpackData(data);
+			createFromData(data);
+		} catch (IOException i) {
+			i.printStackTrace();
+			return;
+		} catch (ClassNotFoundException c) {
+			System.out.println("Employee class not found");
+			c.printStackTrace();
+			return;
+		}
+	}
+
+	private void saveToFile(File f) {
+
+		for (int i = 0; i < components.size(); ++i) {
+			components.get(i).setID(i);
+		}
+		var toWrite = new PackedData(wires, components);
+		try {
+			FileOutputStream fileOut = new FileOutputStream(f);
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(toWrite);
+			out.close();
+			fileOut.close();
+			System.out.printf("Serialized data is saved in " + f);
+		} catch (IOException i) {
+			i.printStackTrace();
+		}
+	}
+
+	public void open() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileFilter(new FileFilter() {
+			public String getDescription() {
+				return "Circuit (*.sim)";
+			}
+
+			public boolean accept(File f) {
+				if (f.isDirectory()) {
+					return true;
+				} else {
+					String filename = f.getName().toLowerCase();
+					return filename.endsWith(".sim");
+				}
+			}
+		});
+
+		if (fileChooser.showOpenDialog(mainWin) == JFileChooser.APPROVE_OPTION) {
+			File file = fileChooser.getSelectedFile();
+			openFromFile(file);
+			// load from file
+		}
+
+	}
+
+	public void save() {
+
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileFilter(new FileFilter() {
+			public String getDescription() {
+				return "Circuit (*.sim)";
+			}
+
+			public boolean accept(File f) {
+				if (f.isDirectory()) {
+					return true;
+				} else {
+					String filename = f.getName().toLowerCase();
+					return filename.endsWith(".sim");
+				}
+			}
+		});
+
+		if (fileChooser.showSaveDialog(mainWin) == JFileChooser.APPROVE_OPTION) {
+			File file = fileChooser.getSelectedFile();
+//			if(!file.getName().endsWith(".sim")) {
+//				file.
+//			}
+			saveToFile(file);
+			// load from file
+		}
+
+	}
+
 	public static void main(String[] args) {
+
 		new Driver();
+//		String test = "";
+//		for (var s : args) {
+//			test += s + "\n";
+//		}
+//		JOptionPane.showMessageDialog(null, test);
+
 	}
 
 }

@@ -167,9 +167,9 @@ public class SimulatorAPI implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	public void setProperty(int componentID, String property, Object value) throws Exception {
+	public void setProperty(int componentID, String property, Object value){
 		var comp = identifiers.get(componentID);
-		if(comp == null) throw new Exception("Component ID not found: "+ componentID);
+		if(comp == null) throw new RuntimeException("Component ID not found: "+ componentID);
 		else
 			comp.setProperty(property, value);
 	}

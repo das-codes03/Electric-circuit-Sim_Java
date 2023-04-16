@@ -16,6 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import Backend.api.Components.ACSource;
+import Backend.api.Components.Bulb;
 import Backend.api.Components.Switch;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -68,7 +69,7 @@ public class SwitchDescriptor extends DeviceUI {
 		parent.add(title);
 		{
 
-			JCheckBox closedVal = new JCheckBox("Switch is " + (closed?"closed" : "open"));
+			JCheckBox closedVal = new JCheckBox("Switch is " + (closed ? "closed" : "open"));
 			closedVal.setAlignmentX(CENTER_ALIGNMENT);
 			closedVal.setSelected(closed);
 			closedVal.addChangeListener(new ChangeListener() {
@@ -76,7 +77,7 @@ public class SwitchDescriptor extends DeviceUI {
 				public void stateChanged(ChangeEvent e) {
 					SwitchDescriptor.this.closed = closedVal.isSelected();
 					canvas.Render();
-					closedVal.setText("Switch is " + (closed?"closed" : "open"));
+					closedVal.setText("Switch is " + (closed ? "closed" : "open"));
 				}
 			});
 			parent.add(closedVal);
@@ -86,18 +87,20 @@ public class SwitchDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(Switch.CURRENT);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), Switch.CLOSED, closed);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data = new HashMap<>();
+		data.put(Switch.CLOSED, closed);
+		return data;
 	}
 
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		closed = (boolean) data.get(Switch.CLOSED);
+	}
 }

@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import Backend.api.Components.ACSource;
+import Backend.api.Components.Bulb;
 import Backend.api.Components.Resistor;
 import Backend.api.Components.SevenSegmentDisplay;
 import frontend.SimulationEvent;
@@ -169,7 +170,7 @@ public class SevenSegDspDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
 		for(int i = 0; i < intensities.length; ++i)
 		{
@@ -179,11 +180,13 @@ public class SevenSegDspDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-//			evt.sim.setProperty(getID(), Resistor.RESISTANCE, resistance);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data= new HashMap<>();
+		return data;
+
+	}
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+
 	}
 }

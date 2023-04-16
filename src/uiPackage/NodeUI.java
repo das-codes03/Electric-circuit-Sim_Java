@@ -61,6 +61,10 @@ public class NodeUI extends CanvasDrawable {
 		
 		super.setLocation(x, y);
 		getTransformedBounds();
+		for(var w : incidentWires) {
+			w.getTransformedBounds();
+			canvas.objectsMap.store(w);
+		}
 		canvas.objectsMap.store(this);
 	}
 

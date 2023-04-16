@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import Backend.api.Components.ACSource;
+import Backend.api.Components.Bulb;
 import Backend.api.Components.DCSource;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -46,43 +47,10 @@ public class DiodeDescriptor extends DeviceUI {
 				gx.setColor(Color.white);
 
 				Animable.drawArrow(gx, 0, -30, current, 0.0);
-//				Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-//						new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-////				String dir = "+  -";
-//				if(emf < 0) {
-//					dir = "-  +";
-//				}
-//				Animable.writeCenteredText(dir,
-//						new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-//				gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-
-//		super(canvas, position, "Diode");
-//		this.uiComp= new DeviceUI(canvas, "components/diode.png", 100, 100, this,
-//				new Point[] { new Point(45, 0), new Point(-45, 0) }, new Animable() {
-//					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-//					@Override
-//					public void animate(Graphics g) {
-//						Graphics2D gx = (Graphics2D) g.create();
-//						gx.translate(50, 50);
-//						gx.setColor(Color.white);
-//
-//						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-//								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-////						String dir = "+  -";
-////						if(emf < 0) {
-////							dir = "-  +";
-////						}
-////						Animable.writeCenteredText(dir,
-////								new Font(Font.SANS_SERIF, Font.PLAIN, 25), gx, new Point(0, 0));
-//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -30, -50, null);
-//						gx.dispose();
-//					}
-//				});
-//		uiComp.setLocation(position);
 	}
 
 	@Override
@@ -102,17 +70,18 @@ public class DiodeDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(ACSource.CURRENT);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-//		try {
-//			evt.sim.setProperty(getID(), DCSource.EMF, emf);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data= new HashMap<>();
+		return data;
+	}
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		
 	}
 }

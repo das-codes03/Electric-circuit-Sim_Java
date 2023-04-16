@@ -24,11 +24,31 @@ public abstract class DeviceUI extends CanvasDrawable {
 	private static final long serialVersionUID = -4008080849860554001L;
 	private static final int priority = 2;
 	private static final int LOD_COUNT = 10;
-	private final String typeName;
+	private final String backendClassName;
 	private Animable animator;
+	private Point lastClickedLocalSpace;
+	/** Image source. */
+	private ArrayList<BufferedImage> rawimage;
+	private double rotation = 00d; // in degrees
+	protected Map<NodeUI, Point> nodes; // node_reference->localposition
+	
+	public NodeUI getNode(int index) {
+		for(var n : nodes.keySet()) {
+			if(n.getNodeIndex() == index) {
+				return n;
+			}
+		}
+		return null;
+	}
 
-	public String getTypeName() {
-		return typeName;
+	public String getBackendClassName() {
+		return backendClassName;
+	}
+	public String getDescriptorName() {
+		String s = getClass().getSimpleName();
+		s = s.substring(0, s.length() - Driver.descriptorSuffix.length());
+		
+		return s;
 	}
 
 	private int ID;
@@ -67,12 +87,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 	public int getPriority() {
 		return priority;
 	}
-	private Point lastClickedLocalSpace;
-	/** Image source. */
-	private ArrayList<BufferedImage> rawimage;
-	private double rotation = 00d; // in degrees
-	protected Map<NodeUI, Point> nodes; // node_reference->localposition
-
+	
 	public double getRotation() {
 		return rotation;
 	}
@@ -128,6 +143,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 	}
 
 	public DeviceUI(RenderingCanvas canvas, String imagePath, int width, int height, Point[] nodes, String typeName) {
+		
 		super(canvas);
 		this.nodes = new HashMap<>();
 		this.rawimage = new ArrayList<>();
@@ -144,7 +160,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 
 		rawimage = ResourceManager.loadImage(imagePath, LOD_COUNT);
 
-		this.typeName = typeName;
+		this.backendClassName = typeName;
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
 	}
@@ -230,8 +246,9 @@ public abstract class DeviceUI extends CanvasDrawable {
 		}
 	}
 
-	public abstract void revalidateProperties(SimulationEvent evt);
+	public abstract HashMap<String, Object> readProperties();
 
-	public abstract void updateAttributes(HashMap<String, Object> data);
+	public abstract void writeState(HashMap<String, Object> data);
+	public abstract void writeProperties(HashMap<String, Object> data);
 
 }

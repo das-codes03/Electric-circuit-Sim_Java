@@ -32,7 +32,6 @@ public abstract class Component {
 		if(x == null) throw new RuntimeException(this.getClass().getName() + " doesn't contain property " + property);
 		else {
 			properties.put(property, value);
-			updateProperties();
 		}
 	}
 	public Object getProperty(String property) {
@@ -44,7 +43,7 @@ public abstract class Component {
 	public void updateState( double t, double dt) {
 		this.t = t;
 	};
-	public abstract void updateProperties();
+	
 	public abstract Circuit.Node getPin(int index1) throws Exception;
 
 }

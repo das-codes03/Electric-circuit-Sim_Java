@@ -17,6 +17,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import Backend.api.Components.Bulb;
 import Backend.api.Components.Transformer;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -51,38 +52,15 @@ public class TransformerDescriptor extends DeviceUI {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(100, 100);
 				gx.setColor(Color.orange);
-				
-				Animable.drawArrow(gx, -70,0,primarycurrent, 270);
-				Animable.drawArrow(gx, 70,0,secondarycurrent, 90);
+
+				Animable.drawArrow(gx, -70, 0, primarycurrent, 270);
+				Animable.drawArrow(gx, 70, 0, secondarycurrent, 90);
 				gx.rotate(Math.toRadians(90));
-				Animable.writeCenteredText(primary + ":" + secondary,globalFont, gx, new Point(0,0));
+				Animable.writeCenteredText(primary + ":" + secondary, globalFont, gx, new Point(0, 0));
 				gx.dispose();
 			}
 		});
 		this.setLocation(position);
-
-//		super(canvas, position, "Transformer");
-//		this.uiComp = new DeviceUI(canvas, "components/transformer.png", 200, 200, this,
-//				new Point[] { new Point(95, -87), new Point(-95, -87), new Point(95, 87), new Point(-95, 87) }, new Animable() {
-//					private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-//
-//					@Override
-//					public void animate(Graphics g) {
-//						Graphics2D gx = (Graphics2D) g.create();
-//						gx.translate(100, 100);
-//						gx.setColor(Color.white);
-////						Animable.writeCenteredText(NumericUtilities.getPrefixed(emf, 4) + "V",
-////								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, 40));
-////						Animable.writeCenteredText(NumericUtilities.getPrefixed(current, 4) + "A",
-////								new Font(Font.SANS_SERIF, Font.PLAIN, 15), gx, new Point(0, -50));
-//						gx.rotate(Math.toRadians(90));
-//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -25, -100, null);
-//						gx.drawImage(arrow.getScaledInstance(60, 30, Image.SCALE_SMOOTH), -25, 70, null);
-//
-//						gx.dispose();
-//					}
-//				});
-//		uiComp.setLocation(position);
 	}
 
 	@Override
@@ -145,22 +123,26 @@ public class TransformerDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
-		primarycurrent =(double) data.get(Transformer.PRIMARY_CURRENT);
-		secondarycurrent =(double) data.get(Transformer.SECONDARY_CURRENT);
-		
+		primarycurrent = (double) data.get(Transformer.PRIMARY_CURRENT);
+		secondarycurrent = (double) data.get(Transformer.SECONDARY_CURRENT);
+
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), Transformer.PRIMARY_WINDINGS, primary);
-			evt.sim.setProperty(getID(), Transformer.SECONDARY_WINDINGS, secondary);
-			evt.sim.setProperty(getID(), Transformer.PRIMARY_INDUCTANCE, primInductance);
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data = new HashMap<>();
+		data.put(Transformer.PRIMARY_WINDINGS, primary);
+		data.put(Transformer.SECONDARY_WINDINGS, secondary);
+		data.put(Transformer.PRIMARY_INDUCTANCE, primInductance);
+		return data;
+	}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		primary = (int) data.get(Transformer.PRIMARY_WINDINGS);
+		secondary = (int) data.get(Transformer.SECONDARY_WINDINGS);
+		primInductance = (double) data.get(Transformer.PRIMARY_INDUCTANCE);
 	}
 }

@@ -18,6 +18,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import Backend.api.Components.ACSource;
+import Backend.api.Components.Bulb;
 import Backend.api.Components.Capacitor;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -102,18 +103,21 @@ public class CapacitorDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		current = (double) data.get(ACSource.CURRENT);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), Capacitor.CAPACITANCE, capacitance);
-			evt.sim.setProperty(getID(), Capacitor.BREAKDOWN_VOLTAGE, breakdownVoltage);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data= new HashMap<>();
+		data.put(Capacitor.CAPACITANCE, capacitance);
+		data.put(Capacitor.BREAKDOWN_VOLTAGE, breakdownVoltage);
+		return data;
+	}
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		capacitance =(double) data.get(Capacitor.CAPACITANCE);
+		breakdownVoltage = (double)data.get(Capacitor.BREAKDOWN_VOLTAGE);
 	}
 
 }

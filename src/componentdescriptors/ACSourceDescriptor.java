@@ -101,11 +101,11 @@ public class ACSourceDescriptor extends DeviceUI {
 			parent.add(hzVal);
 		}
 		{
-			JLabel phTag = new JLabel("Phase = " + (int)phase + "°");
+			JLabel phTag = new JLabel("Phase = " + (int) phase + "°");
 			phTag.setAlignmentX(CENTER_ALIGNMENT);
 			parent.add(phTag);
-			JSlider phVal = new JSlider(0,360);
-			phVal.setValue((int)phase);
+			JSlider phVal = new JSlider(0, 360);
+			phVal.setValue((int) phase);
 			phVal.setPaintTicks(true);
 			phVal.setMajorTickSpacing(45);
 			phVal.setMinorTickSpacing(15);
@@ -114,7 +114,7 @@ public class ACSourceDescriptor extends DeviceUI {
 				public void stateChanged(ChangeEvent e) {
 					ACSourceDescriptor.this.phase = phVal.getValue();
 					canvas.Render();
-					phTag.setText("Phase = " + (int)phase + "°");
+					phTag.setText("Phase = " + (int) phase + "°");
 				}
 			});
 			parent.add(phVal);
@@ -124,19 +124,24 @@ public class ACSourceDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(ACSource.CURRENT);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), ACSource.AMPLITUDE, amplitude);
-			evt.sim.setProperty(getID(), ACSource.FREQUENCY, frequency);
-			evt.sim.setProperty(getID(), ACSource.PHASE, phase);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data = new HashMap<>();
+		data.put(ACSource.AMPLITUDE, amplitude);
+		data.put(ACSource.FREQUENCY, frequency);
+		data.put(ACSource.PHASE, phase);
+		return data;
+	}
+
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		amplitude = (double) data.get(ACSource.AMPLITUDE);
+		frequency = (double) data.get(ACSource.FREQUENCY);
+		phase = (double) data.get(ACSource.PHASE);
 	}
 }

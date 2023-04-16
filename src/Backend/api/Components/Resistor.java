@@ -33,8 +33,4 @@ public class Resistor extends Component {
 		return segments[0].getNode(index);
 	}
 
-	@Override
-	public void updateProperties() {
-
-	}
 }

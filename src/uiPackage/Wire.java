@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class Wire extends CanvasDrawable {
@@ -17,7 +18,7 @@ public class Wire extends CanvasDrawable {
 	 */
 	private static final long serialVersionUID = -4130602527644480994L;
 	private static final int priority = 1;
-	public Vector<NodeUI> nodes;
+	public final Vector<NodeUI> nodes;
 	private Color wireColor = new Color(255, 174, 0);
 	public double wireThickness = 5;
 	public double wireBoundWidth = 10;
@@ -42,20 +43,12 @@ public class Wire extends CanvasDrawable {
 		return nodes.contains(node);
 	}
 
-	public void setWire(Vector<NodeUI> nodes) {
-		canvas.objectsMap.remove(this);
-		this.nodes = nodes;
-		getTransformedBounds();
-		canvas.objectsMap.store(this);
-		canvas.bringToFront(this);
-	}
 
 	public Wire(RenderingCanvas canvas) {
 		super(canvas);
 		nodes = new Vector<>();
 		getTransformedBounds();
 		canvas.objectsMap.store(this);
-
 	}
 
 	@Override

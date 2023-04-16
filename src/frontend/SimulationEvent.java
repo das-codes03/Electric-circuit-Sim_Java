@@ -19,7 +19,7 @@ public class SimulationEvent implements Runnable {
 		// gather the components
 		for (var c : devices) {
 			try {
-				sim.addComponent(c.getID(), c.getTypeName());
+				sim.addComponent(c.getID(), c.getBackendClassName());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -66,13 +66,16 @@ public class SimulationEvent implements Runnable {
 		int stepMS = (int) (1000.0 / framesPerSecond);
 		double lastCaptured = 0;
 		while (running && thr.isAlive()) {
-			if(thr.isAlive() == false) {
+			if (thr.isAlive() == false) {
 				System.out.println("Died");
 			}
 			var t1 = System.nanoTime();
 			// STEP 1: get updated properties from devices
 			for (var c : devices) {
-				c.revalidateProperties(this);
+				var data = c.readProperties();
+				for (var d : data.keySet()) {
+					sim.setProperty(c.getID(), d, data.get(d));
+				}
 			}
 			boolean flag = false;
 			synchronized (sim) {
@@ -80,7 +83,7 @@ public class SimulationEvent implements Runnable {
 					lastCaptured = sim.state.getT();
 					flag = true;
 					for (var k : sim.state.stateData.keySet()) {
-						devices.get(k).updateAttributes(sim.state.stateData.get(k));
+						devices.get(k).writeState(sim.state.stateData.get(k));
 					}
 				}
 			}

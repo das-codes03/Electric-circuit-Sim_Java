@@ -40,8 +40,4 @@ public class Led extends Diode {
 		return super.getPin(index);
 	}
 
-	@Override
-	public void updateProperties() {
-
-	}
 }

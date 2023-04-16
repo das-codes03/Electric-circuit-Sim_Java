@@ -26,7 +26,7 @@ public class Switch extends Component {
 			segments[0].setCapacitance(Double.POSITIVE_INFINITY);
 		}else {
 			segments[0].setBreakdown(1e18);
-			segments[0].setCapacitance(10e-15);
+			segments[0].setCapacitance(10e-18);
 		}
 		var current = segments[0].getCurrent();
 		states.put(CURRENT, current);
@@ -38,10 +38,5 @@ public class Switch extends Component {
 			throw new Exception("Node index must be in [0-1]");
 		}
 		return segments[0].getNode(index);
-	}
-
-	@Override
-	public void updateProperties() {
-
 	}
 }

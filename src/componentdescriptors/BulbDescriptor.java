@@ -14,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import Backend.api.Components.ACSource;
 import Backend.api.Components.Bulb;
 import frontend.SimulationEvent;
 import uiPackage.Animable;
@@ -48,12 +49,11 @@ public class BulbDescriptor extends DeviceUI {
 				gx.dispose();
 			}
 
-
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();
 				gx.translate(getWidth() / 2, getHeight() / 2);
-				drawGlow(gx,100,100);
+				drawGlow(gx, 100, 100);
 				gx.setColor(Color.white);
 				Animable.writeCenteredText(
 						NumericUtilities.getPrefixed(ratedWattage, 3) + "W @"
@@ -111,18 +111,22 @@ public class BulbDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		current = (double) data.get(Bulb.CURRENT);
 		intensity = (double) data.get(Bulb.INTENSITY);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), Bulb.RATED_VOLTAGE, ratedVoltage);
-			evt.sim.setProperty(getID(), Bulb.RATED_WATTAGE, ratedWattage);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data = new HashMap<>();
+		data.put(Bulb.RATED_VOLTAGE, ratedVoltage);
+		data.put(Bulb.RATED_WATTAGE, ratedWattage);
+		return data;
+	}
+
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		ratedVoltage = (double) data.get(Bulb.RATED_VOLTAGE);
+		ratedWattage = (double) data.get(Bulb.RATED_WATTAGE);
 	}
 }

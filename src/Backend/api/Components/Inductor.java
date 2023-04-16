@@ -34,10 +34,4 @@ public class Inductor extends Component {
 		}
 		return segments[0].getNode(index);
 	}
-
-	@Override
-	public void updateProperties() {
-		
-	}
-
 }

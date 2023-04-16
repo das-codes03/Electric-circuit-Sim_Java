@@ -22,6 +22,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import Backend.api.Components.ACSource;
+import Backend.api.Components.Bulb;
 import Backend.api.Components.Inductor;
 import Backend.api.Components.Resistor;
 import frontend.Driver;
@@ -71,7 +72,7 @@ public class ResistorDescriptor extends DeviceUI {
 		title.setForeground(Color.green);
 		title.setAlignmentX(CENTER_ALIGNMENT);
 		parent.add(title);
-		
+
 		JLabel restag = new JLabel("Resistance = " + NumericUtilities.getPrefixed(resistance, 4) + "Ω");
 		restag.setAlignmentX(CENTER_ALIGNMENT);
 		parent.add(restag);
@@ -91,17 +92,20 @@ public class ResistorDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void updateAttributes(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(ACSource.CURRENT);
 	}
 
 	@Override
-	public void revalidateProperties(SimulationEvent evt) {
-		try {
-			evt.sim.setProperty(getID(), Resistor.RESISTANCE, resistance);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public HashMap<String, Object> readProperties() {
+		HashMap<String, Object> data = new HashMap<>();
+		data.put(Resistor.RESISTANCE, resistance);
+		return data;
+	}
+
+	@Override
+	public void writeProperties(HashMap<String, Object> data) {
+		resistance = (double) data.get(Resistor.RESISTANCE);
 	}
 }

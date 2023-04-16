@@ -210,7 +210,7 @@ public class MainWindow extends JFrame implements ActionListener {
 		descriptionPanel.setMinimumSize(new Dimension(0, 100));
 		descriptionParent.add(descriptionPanel);
 		descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
-		
+
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		toolboxViewport.add(tabbedPane);
 		JPanel devicesPanel = new JPanel();
@@ -248,7 +248,6 @@ public class MainWindow extends JFrame implements ActionListener {
 		teleScreen = new TelemetryScreen(telemetryPanel);
 		teleScreen.updateValues(0.0, 0.0, 0.0, 0.0, 0.0, runStatus.STOPPED);
 
-		
 		if (tree.getCellRenderer() instanceof DefaultTreeCellRenderer) {
 			final DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) (tree.getCellRenderer());
 			renderer.setBackgroundNonSelectionColor(Color.black);
@@ -270,12 +269,27 @@ public class MainWindow extends JFrame implements ActionListener {
 		menuBar.add(mnNewMenu);
 
 		JMenuItem mntmNewMenuItem = new JMenuItem("Save");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Driver.getDriver().save();
+			}
+		});
 		mnNewMenu.add(mntmNewMenuItem);
 
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("New");
 		mnNewMenu.add(mntmNewMenuItem_1);
 
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Open");
+		mntmNewMenuItem_2.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Driver.getDriver().open();
+
+			}
+		});
 		mnNewMenu.add(mntmNewMenuItem_2);
 
 		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Exit");
@@ -312,11 +326,13 @@ public class MainWindow extends JFrame implements ActionListener {
 		setListeners();
 		slider.setLogValue(Driver.getDriver().speed);
 	}
+
 	public void refreshDescription() {
 		descriptionPanel.removeAll();
 		descriptionPanel.getParent().revalidate();
 		descriptionPanel.repaint();
 	}
+
 	void setComponentList(HashMap<String, String[]> mapping) {
 		tree = new JTree();
 		tree.setBackground(new Color(20, 20, 20));

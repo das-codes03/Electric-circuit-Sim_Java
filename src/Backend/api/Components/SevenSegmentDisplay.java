@@ -19,7 +19,6 @@ public class SevenSegmentDisplay extends Component {
 	public static final int PIN_G = 6;
 	public static final int PIN_DP = 7;
 	public static final int PIN_GND = 8;
-//	public static final String RESISTANCE = "resistance";
 	private Led[] lights = new Led[8];
 
 	public SevenSegmentDisplay(Circuit c) {
@@ -50,8 +49,6 @@ public class SevenSegmentDisplay extends Component {
 			states.put(INTENSITIES[i], (double)lights[i].getState(Led.INTENSITY));
 			curr+=(double)lights[i].getState(Led.CURRENT);
 		}
-//		segments[0].setResistance( (double) properties.get(RESISTANCE));
-//		var current = segments[0].getCurrent();
 		states.put(CURRENT, curr);
 	}
 
@@ -64,10 +61,5 @@ public class SevenSegmentDisplay extends Component {
 			return lights[0].getPin(Led.NEG_PIN);
 		else
 			return lights[index].getPin(Led.POS_PIN);
-	}
-
-	@Override
-	public void updateProperties() {
-
 	}
 }
