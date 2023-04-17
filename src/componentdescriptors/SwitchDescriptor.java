@@ -2,7 +2,6 @@ package componentdescriptors;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -15,17 +14,16 @@ import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.api.Components.ACSource;
-import Backend.api.Components.Bulb;
-import Backend.api.Components.Switch;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.RenderingCanvas;
-import utilities.NumericUtilities;
+import circuitlogic.solver.devices.Switch;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.RenderingCanvas;
 
 public class SwitchDescriptor extends DeviceUI {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 524692668486187094L;
 	private boolean closed = true;
 	private double current = 0;
 

@@ -1,46 +1,32 @@
 package componentdescriptors;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
-import Backend.api.Components.ACSource;
-import Backend.api.Components.Bulb;
-import Backend.api.Components.Inductor;
-import Backend.api.Components.Resistor;
-import frontend.Driver;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.CanvasDrawable;
-
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
+import circuitlogic.solver.devices.ACSource;
+import circuitlogic.solver.devices.Resistor;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.LogarithmicSlider;
+import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
 
 public class ResistorDescriptor extends DeviceUI {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4730436519437429724L;
 	private double resistance = 0.1d;
 	private double current = 0;
-	private DeviceUI uiComp;
-
 	public ResistorDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}

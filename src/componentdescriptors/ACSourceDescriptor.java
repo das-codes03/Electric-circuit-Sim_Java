@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -14,15 +13,18 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.api.Components.ACSource;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
+import circuitlogic.solver.devices.ACSource;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.LogarithmicSlider;
+import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
 
 public class ACSourceDescriptor extends DeviceUI {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8355178463434070064L;
 	private double amplitude = 100d;
 	private double frequency = 1;
 	private double phase = 0;
@@ -36,8 +38,7 @@ public class ACSourceDescriptor extends DeviceUI {
 		super(canvas, "components/acsource.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) },
 				"ACSource");
 		addAnimator(new Animable() {
-			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-
+	
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();

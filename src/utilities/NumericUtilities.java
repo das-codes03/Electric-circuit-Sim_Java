@@ -3,7 +3,6 @@ package utilities;
 import java.awt.Point;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 
 public class NumericUtilities {

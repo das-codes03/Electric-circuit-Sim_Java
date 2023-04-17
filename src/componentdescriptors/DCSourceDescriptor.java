@@ -5,7 +5,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -14,22 +13,21 @@ import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.api.Components.ACSource;
-import Backend.api.Components.Bulb;
-import Backend.api.Components.DCSource;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
+import circuitlogic.solver.devices.ACSource;
+import circuitlogic.solver.devices.DCSource;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.LogarithmicSlider;
+import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
 
 public class DCSourceDescriptor extends DeviceUI {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2976824204947422602L;
 	private double emf = 100d;
 	private double current = 0;
-	private DeviceUI uiComp;
-
 	public DCSourceDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
@@ -39,8 +37,6 @@ public class DCSourceDescriptor extends DeviceUI {
 		super(canvas, "components/dcsource.png", 100, 100, new Point[] { new Point(45, 0), new Point(-45, 0) },
 				"DCSource");
 		addAnimator(new Animable() {
-			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();

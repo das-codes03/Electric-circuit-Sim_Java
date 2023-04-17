@@ -8,23 +8,26 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
-import javax.swing.JCheckBox;
+
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.api.Components.Bulb;
-import Backend.api.Components.Led;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
+import circuitlogic.solver.devices.Bulb;
+import circuitlogic.solver.devices.Led;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.LogarithmicSlider;
+import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
+import utilities.ResourceManager;
 
 public class LedDescriptor extends DeviceUI {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6501414687864504411L;
 	private Color color = new Color(0, 0, 255);
 	private double intensity = 0;
 	private double current = 0;

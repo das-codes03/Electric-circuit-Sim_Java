@@ -12,28 +12,23 @@ import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import Backend.api.Components.ACSource;
-import Backend.api.Components.Bulb;
-import Backend.api.Components.Resistor;
-import Backend.api.Components.SevenSegmentDisplay;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
-import utilities.NumericUtilities;
+
+import circuitlogic.solver.devices.SevenSegmentDisplay;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.RenderingCanvas;
+import utilities.ResourceManager;
+
 
 public class SevenSegDspDescriptor extends DeviceUI {
-	private double resistance = 0.1d;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3538924516145553712L;
 	private double current = 0;
 	private Color segmentColor = new Color(0, 255, 0);
 
 	private final double[] intensities = new double[8];
-	private DeviceUI uiComp;
-
 	public SevenSegDspDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
@@ -123,20 +118,7 @@ public class SevenSegDspDescriptor extends DeviceUI {
 
 				}
 				BufferedImage dotImg = ResourceManager.loadImage("components/dot.png", 0).get(0);
-				gx.drawImage(ResourceManager.applyAldebo(dotImg, segmentColor, intensities[7]), 90, 85, null);
-				
-//				gx.fillOval(90, 85, 20, 20);
-//				gx.fillOval(90, 85, 20, 20);
-//				gx.drawImage(segment, -60, -25, null);
-//				gx.drawImage(segment, 70, -25, null);
-//				gx.drawImage(segment, -60, -143, null);
-//				gx.drawImage(segment, 70, -143, null);
-//
-//				gx.rotate(Math.toRadians(90));
-//				gx.drawImage(segment, -165, -73, null);
-//				gx.drawImage(segment, 80, -73, null);
-//				gx.drawImage(segment, -41, -73, null);
-//				
+				gx.drawImage(ResourceManager.applyAldebo(dotImg, segmentColor, intensities[7]), 90, 85, null);			
 				gx.dispose();
 			}
 		});
@@ -146,25 +128,10 @@ public class SevenSegDspDescriptor extends DeviceUI {
 	@Override
 	public void displayProperties(JComponent parent) {
 		parent.removeAll();
-		JLabel title = new JLabel("RESISTOR");
+		JLabel title = new JLabel("SEVEN SEGMENT DISPLAY");
 		title.setForeground(Color.green);
 		title.setAlignmentX(CENTER_ALIGNMENT);
 		parent.add(title);
-
-		JLabel restag = new JLabel("Resistance = " + NumericUtilities.getPrefixed(resistance, 4) + "Ω");
-		restag.setAlignmentX(CENTER_ALIGNMENT);
-		parent.add(restag);
-		LogarithmicSlider resval = new LogarithmicSlider(-9, 9, 4, "Ω");
-		resval.setLogValue(resistance);
-		resval.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				SevenSegDspDescriptor.this.resistance = NumericUtilities.getRounded(resval.getLogValue(), 4);
-				canvas.Render();
-				restag.setText("Resistance = " + NumericUtilities.getPrefixed(resistance, 4) + "Ω");
-			}
-		});
-		parent.add(resval);
 		parent.revalidate();
 		parent.repaint();
 	}

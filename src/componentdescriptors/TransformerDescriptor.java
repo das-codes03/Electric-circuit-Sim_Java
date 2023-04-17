@@ -3,38 +3,33 @@ package componentdescriptors;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
-import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Backend.api.Components.Bulb;
-import Backend.api.Components.Transformer;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.LogarithmicSlider;
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
+import circuitlogic.solver.devices.Transformer;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.LogarithmicSlider;
+import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
 
 public class TransformerDescriptor extends DeviceUI {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3245213254146827667L;
 	private int primary = 100;
 	private int secondary = 1000;
 	private double primarycurrent = 0;
 	private double secondarycurrent = 0;
 	private double primInductance = 0.1;
-	private DeviceUI uiComp;
-
 	public TransformerDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
@@ -45,8 +40,6 @@ public class TransformerDescriptor extends DeviceUI {
 				new Point[] { new Point(-95, -87), new Point(-95, 87), new Point(95, 87), new Point(95, -87) },
 				"Transformer");
 		addAnimator(new Animable() {
-			private BufferedImage arrow = ResourceManager.loadImage("arrow.png", 0).get(0);
-
 			@Override
 			public void animate(Graphics g) {
 				Graphics2D gx = (Graphics2D) g.create();

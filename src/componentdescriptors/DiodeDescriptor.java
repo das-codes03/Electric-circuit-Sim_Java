@@ -1,37 +1,28 @@
 package componentdescriptors;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
 
-import Backend.api.Components.ACSource;
-import Backend.api.Components.Bulb;
-import Backend.api.Components.DCSource;
-import frontend.SimulationEvent;
-import uiPackage.Animable;
-import uiPackage.DeviceUI;
-import uiPackage.CanvasDrawable;
-
-import uiPackage.RenderingCanvas;
-import uiPackage.ResourceManager;
-import utilities.NumericUtilities;
+import circuitlogic.solver.devices.ACSource;
+import simulatorgui.rendering.Animable;
+import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.RenderingCanvas;
 
 public class DiodeDescriptor extends DeviceUI {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6213115296806224488L;
 	private double current = 0;
-	private DeviceUI uiComp;
-
 	public DiodeDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
