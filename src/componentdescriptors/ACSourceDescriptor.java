@@ -1,30 +1,23 @@
 package componentdescriptors;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
-import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import Backend.api.Components.ACSource;
-import frontend.SimulationEvent;
 import uiPackage.Animable;
 import uiPackage.DeviceUI;
 import uiPackage.LogarithmicSlider;
-import uiPackage.CanvasDrawable;
-
 import uiPackage.RenderingCanvas;
 import uiPackage.ResourceManager;
 import utilities.NumericUtilities;

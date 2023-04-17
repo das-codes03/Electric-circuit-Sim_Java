@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import Backend.api.Circuit;
 import Backend.api.Component;
 import Backend.api.Circuit.Node;
-import Backend.api.Circuit.Segment;
 
 public class SevenSegmentDisplay extends Component {
 	public static final String CURRENT = "current";
@@ -26,17 +25,14 @@ public class SevenSegmentDisplay extends Component {
 		var data = new ArrayList<Node>();
 		// add lights and node connections
 		for (int i = 0; i < lights.length; ++i) {
-
 			lights[i] = new Led(c);
 			data.add(lights[i].getPin(Led.NEG_PIN));
 		}
 		// connect to common ground
-
 		c.mergeNodes(data);
 		for (var i : INTENSITIES) {
 			states.put(i, 0.0);
 		}
-
 		states.put(CURRENT, 0.0);
 	}
 

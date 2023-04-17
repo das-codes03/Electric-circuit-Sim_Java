@@ -1,76 +1,50 @@
 package frontend;
 
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.StreamCorruptedException;
 import java.sql.Blob;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JSplitPane;
+import javax.swing.JDialog;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.Element;
-import javax.swing.text.Position;
-import javax.swing.text.Segment;
-
 import com.formdev.flatlaf.ui.FlatLineBorder;
-
-import frontend.CircuitData.PackedData;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 class CircuitEntry extends JPanel {
-	private long circuitId;
-	private String description, username;
 
 	public CircuitEntry(String title, String desc, long circuitId, String username, BufferedImage img,
 			MarketplaceWindow win) {
-//		desc = "abcdejfeoikhjsfknskdnsld\njsdbskjdhbsoidjbsudgbskjdbsg\nihksbdksbdskdbskdjbs\n\nhsdbvshdbskhdbs";
-//		desc += desc;
-//		desc += desc;
+		this.setBorder(new BevelBorder(BevelBorder.RAISED));
 		this.setBackground(new Color(15, 15, 15));
 		setLayout(null);
-		this.setMinimumSize(new Dimension(500, 200));
-		this.setSize(new Dimension(500, 200));
-//		this.setPreferredSize(new Dimension(1000,400));
-		this.setPreferredSize(new Dimension(500, 200));
+		this.setMinimumSize(new Dimension(800, 200));
+		this.setMaximumSize(new Dimension(800, 200));
+		this.setSize(new Dimension(800, 200));
+		this.setPreferredSize(new Dimension(800, 200));
 
 		JLabel lblNewLabel = new JLabel();
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -81,18 +55,12 @@ class CircuitEntry extends JPanel {
 		} else {
 			lblNewLabel.setText("NO IMAGE LOADED");
 		}
-
-//		JLabel lblNewLabel = new JLabel("New label");
 		lblNewLabel.setLocation(20, 20);
 		lblNewLabel.setSize(new Dimension(512 / 2, 288 / 2));
 		lblNewLabel.setBorder(new FlatLineBorder(new Insets(0, 0, 0, 0), Color.red));
-//		lblNewLabel.setPreferredSize(new Dimension(512, 288));
-//		lblNewLabel.setMinimumSize(new Dimension(512, 288));
-//		lblNewLabel.setMaximumSize(new Dimension(512, 288));
 		add(lblNewLabel);
 
 		JLabel userlbl = new JLabel("by: " + username);
-//		userlbl.set(100, 100);
 		userlbl.setBounds(650, 40, 100, 20);
 		add(userlbl);
 
@@ -128,19 +96,18 @@ class CircuitEntry extends JPanel {
 	}
 }
 
-public class MarketplaceWindow extends JFrame {
+public class MarketplaceWindow extends JDialog {
 	JPanel panel_2;
 	JPanel panel_4;
 
 	public MarketplaceWindow() {
-
+		this.setTitle("Circuits inventory");
+		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
 		JTabbedPane tabbedPane = new JTabbedPane();
 		getContentPane().add(tabbedPane);
 		JPanel globalCircuits = new JPanel();
 		tabbedPane.addTab("Global circuits", globalCircuits);
-		this.setResizable(false);
-		this.setVisible(true);
-		this.setSize(800, 800);
+		
 
 		globalCircuits.setLayout(new BoxLayout(globalCircuits, BoxLayout.X_AXIS));
 
@@ -150,14 +117,14 @@ public class MarketplaceWindow extends JFrame {
 		globalCircuits.add(panel_1);
 		JScrollPane scrollPane = new JScrollPane();
 		panel_1.add(scrollPane);
-
+		
 		panel_2 = new JPanel();
+		
 		scrollPane.setViewportView(panel_2);
 		panel_2.setLayout(new BoxLayout(panel_2, BoxLayout.Y_AXIS));
-
+		
 		JPanel personalcircuits = new JPanel();
 		tabbedPane.addTab("My circuits", personalcircuits);
-
 
 		personalcircuits.setLayout(new BoxLayout(personalcircuits, BoxLayout.X_AXIS));
 
@@ -173,23 +140,19 @@ public class MarketplaceWindow extends JFrame {
 		panel_4.setLayout(new BoxLayout(panel_4, BoxLayout.Y_AXIS));
 		displayPersonalCircuits();
 		displayGlobalCircuits();
-	}
-
-	public String getUserName(long userId) {
-		Connection con = UserManager.getConnection();
-		try (Statement stmt = con.createStatement();
-				ResultSet rs = stmt.executeQuery("select userName from userInformation where userId = " + userId);) {
-			if (rs.next()) {
-				return rs.getString("userName");
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		panel_2.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		pack();
+		this.setResizable(false);
+		
+		this.setSize(800, 800);
+		this.setVisible(true);
 	}
 
 	public void displayPersonalCircuits() {
+		if(!UserManager.isLoggedIn()) {
+			panel_4.add(new JLabel("Login to you account to view circuits."));
+			return;
+		}
 		Connection con = UserManager.getConnection();
 		if (con == null) {
 			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please try again later.");
@@ -198,12 +161,14 @@ public class MarketplaceWindow extends JFrame {
 
 		String command = "SELECT * from savedCircuits where userId = " + UserManager.getUserId();
 		try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(command)) {
-			int i = 0;
+			boolean flag = false;
+			
 			while (rs.next()) {
+				flag = true;
 				String title = rs.getString("title");
 				String desc = rs.getString("descr");
 				long circuitId = rs.getLong("circuitId");
-				String userName = getUserName(rs.getLong("userId"));
+				String userName = UserManager.getUserName(rs.getLong("userId"));
 
 				Blob is = rs.getBlob("circuitImage");
 				BufferedImage image = null;
@@ -213,6 +178,9 @@ public class MarketplaceWindow extends JFrame {
 				CircuitEntry ent = new CircuitEntry(title, desc, circuitId, userName, image, this);
 				panel_4.add(ent);
 
+			}
+			if(!flag) {
+				panel_4.add(new JLabel("You haven't saved any circuits online!"));
 			}
 		} catch (SQLException | IOException e) {
 			e.printStackTrace();
@@ -228,12 +196,13 @@ public class MarketplaceWindow extends JFrame {
 
 		String command = "SELECT * from savedCircuits where isPublic = 1";
 		try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(command)) {
-			int i = 0;
+			boolean flag = false;
 			while (rs.next()) {
+				flag = true;
 				String title = rs.getString("title");
 				String desc = rs.getString("descr");
 				long circuitId = rs.getLong("circuitId");
-				String userName = getUserName(rs.getLong("userId"));
+				String userName = UserManager.getUserName(rs.getLong("userId"));
 
 				Blob is = rs.getBlob("circuitImage");
 				BufferedImage image = null;
@@ -243,6 +212,9 @@ public class MarketplaceWindow extends JFrame {
 				CircuitEntry ent = new CircuitEntry(title, desc, circuitId, userName, image, this);
 				panel_2.add(ent);
 
+			}
+			if(!flag) {
+				panel_2.add(new JLabel("No circuits found!"));
 			}
 		} catch (SQLException | IOException e) {
 			e.printStackTrace();

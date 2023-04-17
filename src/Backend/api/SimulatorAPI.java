@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.naming.directory.AttributeInUseException;
 import javax.swing.JOptionPane;
-
-import org.apache.commons.math3.linear.RealMatrix;
-
 import frontend.Driver;
 
 public class SimulatorAPI implements Runnable {
@@ -48,7 +45,6 @@ public class SimulatorAPI implements Runnable {
 		long t1 = System.nanoTime();
 		int t = substeps;
 		double rDt = dt / substeps;
-		RealMatrix r = null;
 		while (t-- > 0) {
 			if (!initialized) {
 				c.initialiseCircuit();
@@ -61,7 +57,7 @@ public class SimulatorAPI implements Runnable {
 			c.generateResistanceMatrix(rDt);
 			c.generateInductanceMatrix();
 			
-			r = c.solveCurrent(rDt);
+			c.solveCurrent(rDt);
 			c.updateSegments(rDt);
 			timeElapsed += rDt;
 			for (var data : identifiers.values()) {
@@ -81,6 +77,7 @@ public class SimulatorAPI implements Runnable {
 			throw new AttributeInUseException("Key " + identifier + " already exists");
 		}
 		try {
+			@SuppressWarnings("unchecked")
 			Class<Component> x = (Class<Component>) Class.forName("Backend.api.Components." + componentName);
 			try {
 				var comp = c.addComponent(x.getDeclaredConstructor(new Class[] { Circuit.class }).newInstance(c));

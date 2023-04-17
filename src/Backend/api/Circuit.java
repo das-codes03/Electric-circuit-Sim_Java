@@ -1,9 +1,6 @@
 package Backend.api;
 
 import java.util.*;
-
-import javax.swing.JOptionPane;
-
 import org.apache.commons.math3.linear.*;
 import org.apache.commons.math3.util.FastMath;
 
@@ -24,7 +21,7 @@ public class Circuit {
 	// ********************************
 	private static final double MIN_RESISTANCE = 1e-30;
 	private static final double MIN_INDUCTANCE = 1e-30;
-	private static final double SHORT_CIRCUIT_CURRENT = 1e50;
+	private static final double SHORT_CIRCUIT_CURRENT = 1e20;
 
 	public class Node {
 		private Set<Segment> incidentSegments;
@@ -344,7 +341,7 @@ public class Circuit {
 		}
 		for (var s : segments) {
 			s.charge += -s.current * dt;
-			if (Math.abs(s.charge / s.capacitance) >= s.breakdownVoltage) {
+			if (FastMath.abs(s.charge / s.capacitance) >= s.breakdownVoltage) {
 				s.charge = 0;
 			}
 		}

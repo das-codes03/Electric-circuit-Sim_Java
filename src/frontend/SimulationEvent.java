@@ -11,6 +11,7 @@ import uiPackage.DeviceUI;
 import uiPackage.NodeUI;
 import uiPackage.RenderingCanvas;
 import uiPackage.Wire;
+import utilities.NumericUtilities;
 
 public class SimulationEvent implements Runnable {
 	public SimulationEvent(ArrayList<DeviceUI> devices, ArrayList<Wire> wires) {
@@ -102,8 +103,11 @@ public class SimulationEvent implements Runnable {
 					e.printStackTrace();
 				}
 			}
-
+			Driver.getDriver().mainWin.runningLabel.setText("RUNNING | Time elapsed = " +NumericUtilities.getPrefixed(lastCaptured, 6) + "s");
+			
 		}
+		sim.stop();
+		Driver.getDriver().mainWin.runningLabel.setText("");
 		Driver.getDriver().stopSimulation();
 		
 	}

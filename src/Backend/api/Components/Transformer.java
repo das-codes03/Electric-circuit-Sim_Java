@@ -2,8 +2,6 @@ package Backend.api.Components;
 
 import Backend.api.Circuit;
 import Backend.api.Component;
-import Backend.api.Circuit.Node;
-import Backend.api.Circuit.Segment;
 
 public class Transformer extends Component {
 	public static final String PRIMARY_CURRENT = "primcurrent";

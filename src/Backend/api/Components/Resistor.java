@@ -2,8 +2,6 @@ package Backend.api.Components;
 
 import Backend.api.Circuit;
 import Backend.api.Component;
-import Backend.api.Circuit.Node;
-import Backend.api.Circuit.Segment;
 
 public class Resistor extends Component {
 	public static final String CURRENT = "current";
@@ -32,5 +30,4 @@ public class Resistor extends Component {
 		}
 		return segments[0].getNode(index);
 	}
-
 }

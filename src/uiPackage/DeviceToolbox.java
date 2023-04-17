@@ -1,6 +1,5 @@
 package uiPackage;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -8,11 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 import javax.swing.border.SoftBevelBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import frontend.Driver;
 
 public class DeviceToolbox extends JPanel {
@@ -29,15 +26,13 @@ public class DeviceToolbox extends JPanel {
 		this.setBorder(new SoftBevelBorder(SoftBevelBorder.RAISED));
 		this.setLayout(new GridLayout());
 		if(currSelected instanceof DeviceUI) {
-			this.setSize(new Dimension(200, 50));
+			this.setSize(new Dimension(150, 50));
 			var leftRotimg = ResourceManager.loadImage("rotateleft.png", 0).get(0).getScaledInstance(30, 30,
 					Image.SCALE_SMOOTH);
 			var rightRotimg = ResourceManager.loadImage("rotateright.png", 0).get(0).getScaledInstance(-30, 30,
 					Image.SCALE_SMOOTH);
 			var deleteImg = ResourceManager.loadImage("delete.png", 0).get(0).getScaledInstance(-30, 30,
 					Image.SCALE_SMOOTH);
-			var graphImg = ResourceManager.loadImage("graph.png", 0).get(0).getScaledInstance(-30, 30, Image.SCALE_SMOOTH);
-//			
 			rotLeftBtn = new JButton(new ImageIcon(leftRotimg));
 			rotLeftBtn.setToolTipText("Rotate anticlockwise (45 degrees)");
 			rotLeftBtn.setBackground(getBackground());
@@ -47,22 +42,11 @@ public class DeviceToolbox extends JPanel {
 			deleteBtn = new JButton(new ImageIcon(deleteImg));
 			deleteBtn.setToolTipText("Discard component");
 			deleteBtn.setBackground(getBackground());
-			JToggleButton jtgl = new JToggleButton(new ImageIcon(graphImg));
-			jtgl.setToolTipText("Plot graph");
-			jtgl.setBackground(new Color(0,50,0));
 			
-			this.add(jtgl);
-			jtgl.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					
-				}
-			});
 			this.add(rotLeftBtn);
 			rotLeftBtn.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
 					((DeviceUI) currSelected).setRotation((int)Math.round(((DeviceUI) currSelected).getRotation()-45));
 					Driver.getDriver().Render();
 				}
@@ -81,11 +65,10 @@ public class DeviceToolbox extends JPanel {
 			deleteBtn.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
 					try {
 						Driver.getDriver().deleteComponent((DeviceUI) currSelected);
 					} catch (Exception e1) {
-						e1.printStackTrace();
+						JOptionPane.showMessageDialog(null, e1.getMessage());
 					}
 					currSelected = null;
 					Driver.getDriver().Render();
@@ -104,11 +87,10 @@ public class DeviceToolbox extends JPanel {
 			deleteBtn.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
 					try {
 						Driver.getDriver().deleteWire((Wire)currSelected);
 					} catch (Exception e1) {
-						e1.printStackTrace();
+						JOptionPane.showMessageDialog(null, e1.getMessage());
 					}
 					currSelected = null;
 					Driver.getDriver().Render();
@@ -117,7 +99,5 @@ public class DeviceToolbox extends JPanel {
 				}
 			});
 		}
-		
-
 	}
 }

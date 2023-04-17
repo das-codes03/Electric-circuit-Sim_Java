@@ -2,8 +2,6 @@ package Backend.api.Components;
 
 import Backend.api.Circuit;
 import Backend.api.Component;
-import Backend.api.Circuit.Node;
-import Backend.api.Circuit.Segment;
 
 public class Switch extends Component {
 	public static final String CURRENT = "current";
@@ -25,7 +23,6 @@ public class Switch extends Component {
 			segments[0].setBreakdown(0);
 			segments[0].setCapacitance(Double.POSITIVE_INFINITY);
 		}else {
-//			segments[0].setResistance(10e30);
 			segments[0].setBreakdown(1e18);
 			segments[0].setCapacitance(10e-18);
 		}

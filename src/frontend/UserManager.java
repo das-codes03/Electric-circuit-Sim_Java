@@ -7,32 +7,28 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.sql.Blob;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
-
 import frontend.CircuitData.PackedData;
 
 public class UserManager {
-
 	private static Long userId = null;
-
 	public static long getUserId() {
 		if (userId == null) {
 			return -1;
 		}
 		return userId;
+	}
+
+	public static boolean isLoggedIn() {
+		return userId != null;
 	}
 
 	public static Connection con = null;
@@ -66,22 +62,21 @@ public class UserManager {
 		if (con == null) {
 			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please check your internet connection");
 		}
-		String command = "SELECT * from userInformation where userName = '" + userName+"'";
-		try(Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(command)){
-			if(rs.next()) {
+		String command = "SELECT * from userInformation where userName = '" + userName + "'";
+		try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(command)) {
+			if (rs.next()) {
 				JOptionPane.showMessageDialog(null, "User already exists, try using a different username");
 				return false;
-			}else {
+			} else {
 				String createAccCommand = "insert into userInformation (userName, pwd) values (?,?)";
 				PreparedStatement stmt2 = con.prepareStatement(createAccCommand);
-				stmt2.setString(1,userName);
+				stmt2.setString(1, userName);
 				stmt2.setString(2, pwd);
 				stmt2.executeUpdate();
 				JOptionPane.showMessageDialog(null, "Account " + userName + " created successfully");
 				return true;
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
@@ -104,6 +99,7 @@ public class UserManager {
 					if (pwd.equals(password)) {
 						userId = rs.getLong("userId");
 						JOptionPane.showMessageDialog(null, "Logged in as " + username + " successfully!");
+						Driver.getDriver().mainWin.profileName.setText(username);
 						return true;
 					} else {
 						JOptionPane.showMessageDialog(null, "Invalid password.");
@@ -122,7 +118,7 @@ public class UserManager {
 
 	public static boolean uploadCircuit(long userId, String title, String description, PackedData data,
 			BufferedImage img, boolean isPublic) {
-
+		
 		Connection con = UserManager.getConnection();
 		if (con == null) {
 			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please try again later.");
@@ -151,7 +147,15 @@ public class UserManager {
 		}
 		return false;
 	}
-
+	public static void logout() {
+		if(!isLoggedIn()) {
+			JOptionPane.showMessageDialog(null, "No user is logged in!");
+		}else {
+			String usrName = getUserName(getUserId());
+			userId = null;
+			JOptionPane.showMessageDialog(null, "Logged out of " + usrName);
+		}
+	}
 	public static PackedData getCircuit(long circuitId) {
 		Connection con = UserManager.getConnection();
 		if (con == null) {
@@ -175,22 +179,33 @@ public class UserManager {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		JOptionPane.showMessageDialog(null, "No circuit was found.");
 		return null;
 	}
+	public static String getUserName(long userId) {
+		Connection con = UserManager.getConnection();
+		try (Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery("select userName from userInformation where userId = " + userId);) {
+			if (rs.next()) {
+				return rs.getString("userName");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	public static boolean validatePwd(String pwd) {
-		String regex = "^(?=.*\\\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%]).{8,20}$";
+		String regex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$";
 		Pattern pat = Pattern.compile(regex);
 		Matcher matcher = pat.matcher(pwd);
 		return matcher.matches();
 	}
-
 	public static boolean validateUsername(String usr) {
-		String regex = "^[A-Za-z]\\w{5, 29}$";
+		String regex =  "^[a-zA-Z0-9]+$";
 		Pattern pat = Pattern.compile(regex);
 		Matcher matcher = pat.matcher(usr);
 		return matcher.matches();

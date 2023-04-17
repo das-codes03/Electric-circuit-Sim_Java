@@ -2,8 +2,6 @@ package Backend.api.Components;
 
 import Backend.api.Circuit;
 import Backend.api.Component;
-import Backend.api.Circuit.Node;
-import Backend.api.Circuit.Segment;
 
 public class Diode extends Component {
 	public static final String CURRENT = "current";
@@ -35,16 +33,16 @@ public class Diode extends Component {
 
 		segments[1].setCapacitance((double) properties.get(JUNCTION_CAPACITANCE));
 		segments[1].setBreakdown((double) getProperty(REVERSE_BREAKDOWN));
-		
-		var pot = -segments[1].getCharge()/segments[1].getCapacitance();
-		double res = (double)getProperty(RESISTANCE);
-		if(pot < 0) {
-			res = -pot/(double)getProperty(SATURATION_CURRENT);
-		}else {
-			var forRes = ((double) getProperty(KNEE_VOLTAGE)-pot)/(double)getProperty(KNEE_VOLTAGE);
-			if(Double.isNaN(forRes))
+
+		var pot = -segments[1].getCharge() / segments[1].getCapacitance();
+		double res = (double) getProperty(RESISTANCE);
+		if (pot < 0) {// rev
+			res = -pot / (double) getProperty(SATURATION_CURRENT);
+		} else {// forw
+			var forRes = ((double) getProperty(KNEE_VOLTAGE) - pot) / (double) getProperty(KNEE_VOLTAGE);
+			if (Double.isNaN(forRes))
 				forRes = 0;
-			res =Math.max(forRes,(double)getProperty(RESISTANCE));
+			res = Math.max(forRes, (double) getProperty(RESISTANCE));
 		}
 		segments[0].setResistance(res);
 		var current = segments[0].getCurrent() + segments[1].getCurrent();

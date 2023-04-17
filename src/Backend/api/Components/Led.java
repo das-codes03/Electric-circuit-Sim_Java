@@ -1,9 +1,6 @@
 package Backend.api.Components;
 
 import Backend.api.Circuit;
-import Backend.api.Component;
-import Backend.api.Circuit.Node;
-import Backend.api.Circuit.Segment;
 
 public class Led extends Diode {
 	public static final String RATED_VOLTAGE = "voltage";
@@ -34,10 +31,6 @@ public class Led extends Diode {
 
 	@Override
 	public Circuit.Node getPin(int index) {
-		if (index < 0 || index > 1) {
-			throw new RuntimeException("Node index must be in [0-1]");
-		}
 		return super.getPin(index);
 	}
-
 }

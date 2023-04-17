@@ -23,6 +23,8 @@ import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -35,7 +37,7 @@ import frontend.TelemetryScreen.runStatus;
 
 import java.awt.BorderLayout;
 
-public class MainWindow extends JFrame implements ActionListener {
+public class MainWindow extends JFrame implements ActionListener, WindowListener {
 
 	/**
 	 * 
@@ -45,24 +47,24 @@ public class MainWindow extends JFrame implements ActionListener {
 	 * @wbp.parser.entryPoint
 	 */
 
-	public RenderingCanvas renderCanvas;
-	public TelemetryScreen teleScreen;
-	public JPanel descriptionPanel;
-	public String playButtonImgPath = "/resources/playpause.png";
-	public String stopButtonImgPath = "/resources/stop.png";
-	public Color c1 = Color.black;
-	public Color c2 = new Color(30, 30, 30);
-	public Color c3 = new Color(20, 20, 20);
-	public Color c4 = Color.lightGray;
-	public Color canvasBg = new Color(10, 10, 10);
-	public JTree tree;
-	private JButton btnFullScreen;
-	private JButton btnSnapshot;
-	private JButton stopButton;
-	private JButton playButton;
-	private LogarithmicSlider slider;
-	private JLabel speedLabel;
-	private JLabel runningLabel;
+	public final RenderingCanvas renderCanvas;
+	public final JPanel descriptionPanel;
+	public final String playButtonImgPath = "/resources/playpause.png";
+	public final String stopButtonImgPath = "/resources/stop.png";
+	public final Color c1 = Color.black;
+	public final Color c2 = new Color(30, 30, 30);
+	public final Color c3 = new Color(20, 20, 20);
+	public final Color c4 = Color.lightGray;
+	public final Color canvasBg = new Color(10, 10, 10);
+	public final JTree tree;
+	private final JButton fitBtn;
+
+	private final JButton stopButton;
+	private final JButton playButton;
+	private final LogarithmicSlider slider;
+	private final JLabel speedLabel;
+	public final JLabel runningLabel;
+	public final JMenuItem profileName;
 
 	/**
 	 * @wbp.parser.entryPoint
@@ -70,19 +72,14 @@ public class MainWindow extends JFrame implements ActionListener {
 	public MainWindow() {
 
 		this.getContentPane().setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
-
+addWindowListener(this);
 		JPanel simSpace = new JPanel();
 		this.getContentPane().add(simSpace);
 		simSpace.setLayout(new BoxLayout(simSpace, BoxLayout.X_AXIS));
 
-		JSplitPane VerticalPane = new JSplitPane();
-		VerticalPane.setDividerSize(8);
-		VerticalPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		simSpace.add(VerticalPane);
-
 		JSplitPane HorizontalPane = new JSplitPane();
 		HorizontalPane.setDividerSize(8);
-		VerticalPane.setLeftComponent(HorizontalPane);
+		simSpace.add(HorizontalPane);
 
 		JPanel ToolboxPane = new JPanel();
 		ToolboxPane.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
@@ -97,35 +94,13 @@ public class MainWindow extends JFrame implements ActionListener {
 		RenderingArea.add(controlPanelRender, BorderLayout.NORTH);
 		controlPanelRender.setLayout(new BoxLayout(controlPanelRender, BoxLayout.X_AXIS));
 
-		btnFullScreen = new JButton("Full screen");
-
-		btnFullScreen.setBackground(c3);
-		controlPanelRender.add(btnFullScreen);
-
-		btnSnapshot = new JButton("Snapshot");
-
-		btnSnapshot.setBackground(c3);
-		controlPanelRender.add(btnSnapshot);
-		
-		JButton fitBtn = new JButton("Fit to screen");
-		fitBtn.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				renderCanvas.setCamTransform(renderCanvas.getZoomToFit(renderCanvas.getWidth(),renderCanvas.getHeight()));
-				Driver.getDriver().Render();
-				
-			}
-		});
+		fitBtn = new JButton("Fit to screen");
+		fitBtn.setBackground(c1);
 		controlPanelRender.add(fitBtn);
 		renderCanvas = new RenderingCanvas(this);
 		renderCanvas.setBackground(canvasBg);
 		RenderingArea.add(renderCanvas, BorderLayout.CENTER);
 		renderCanvas.setLayout(null);
-
-		JPanel GraphingArea = new JPanel();
-		GraphingArea.setBackground(new Color(0, 0, 0));
-		VerticalPane.setRightComponent(GraphingArea);
 
 		JScrollPane toolboxScroll = new JScrollPane();
 		ToolboxPane.add(toolboxScroll);
@@ -208,19 +183,14 @@ public class MainWindow extends JFrame implements ActionListener {
 		speedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
 		simSpeedPnl.add(speedLabel);
 
-		runningLabel = new JLabel("RUNNING");
+		runningLabel = new JLabel("");
 		runningLabel.setForeground(Color.GREEN);
 		runningLabel.setAlignmentX(0.5f);
-		simSpeedPnl.add(runningLabel);
-		JPanel descriptionParent = new JPanel();
-		descriptionParent.setMinimumSize(new Dimension(100, 100));
-		toolboxViewport.add(descriptionParent);
-		descriptionParent.setLayout(new GridLayout());
-		descriptionParent.setBorder(new BevelBorder(BevelBorder.LOWERED));
-
+		toolboxViewport.add(runningLabel);
 		descriptionPanel = new JPanel();
-		descriptionPanel.setMinimumSize(new Dimension(0, 100));
-		descriptionParent.add(descriptionPanel);
+		descriptionPanel.setMinimumSize(new Dimension(0, 000));
+		descriptionPanel.setSize(new Dimension(0, 0));
+		toolboxViewport.add(descriptionPanel);
 		descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.Y_AXIS));
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -244,22 +214,9 @@ public class MainWindow extends JFrame implements ActionListener {
 		mapping.put("AC devices", new String[] { "Transformer" });
 		mapping.put("Semiconductor devices", new String[] { "Diode", "Led" });
 		mapping.put("Displays", new String[] { "SevenSegDsp" });
+		tree = new JTree();
 		setComponentList(mapping);
-
 		deviceScrollPane.setViewportView(tree);
-		JPanel telemetryPanel = new JPanel();
-		telemetryPanel.setName("telemetry");
-		tabbedPane.addTab("Telemetry", null, telemetryPanel, null);
-		telemetryPanel.setLayout(new BoxLayout(telemetryPanel, BoxLayout.Y_AXIS));
-
-		JLabel lbl_TELEMETRY = new JLabel("TELEMETRY");
-		lbl_TELEMETRY.setAlignmentX(Component.CENTER_ALIGNMENT);
-		lbl_TELEMETRY.setHorizontalAlignment(SwingConstants.CENTER);
-		telemetryPanel.add(lbl_TELEMETRY);
-
-		teleScreen = new TelemetryScreen(telemetryPanel);
-		teleScreen.updateValues(0.0, 0.0, 0.0, 0.0, 0.0, runStatus.STOPPED);
-
 		if (tree.getCellRenderer() instanceof DefaultTreeCellRenderer) {
 			final DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) (tree.getCellRenderer());
 			renderer.setBackgroundNonSelectionColor(Color.black);
@@ -267,12 +224,11 @@ public class MainWindow extends JFrame implements ActionListener {
 			renderer.setTextNonSelectionColor(Color.white);
 			renderer.setTextSelectionColor(Color.green);
 		}
-
 		this.setSize(1024, 1024);
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setTitle("Simulator");
 		this.setIconImage(buttonIcon);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
 		this.setJMenuBar(menuBar);
@@ -282,15 +238,29 @@ public class MainWindow extends JFrame implements ActionListener {
 
 		JMenuItem saveMenuBtn = new JMenuItem("Save");
 		saveMenuBtn.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Driver.getDriver().save();
+				try {
+					Driver.getDriver().save();
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(null, e1.getMessage());
+				}
 			}
 		});
 		fileMenu.add(saveMenuBtn);
 
 		JMenuItem newMenuBtn = new JMenuItem("New");
+		newMenuBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Driver.getDriver().clearCircuit();
+					Driver.getDriver().Render();
+				} catch (Exception re) {
+					JOptionPane.showMessageDialog(null, "Stop simulation before creating new circuit.");
+				}
+			}
+		});
 		fileMenu.add(newMenuBtn);
 
 		JMenuItem openMenuBtn = new JMenuItem("Open");
@@ -298,62 +268,77 @@ public class MainWindow extends JFrame implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Driver.getDriver().open();
+				try {
+					Driver.getDriver().open();
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(null, e1.getMessage());
+				}
 
 			}
 		});
 		fileMenu.add(openMenuBtn);
 
 		JMenuItem exitMenuBtn = new JMenuItem("Exit");
-		fileMenu.add(exitMenuBtn);
-
-		JMenu viewMenu = new JMenu("View");
-		menuBar.add(viewMenu);
-
-		JMenu mnNewMenu_3 = new JMenu("Theme");
-		viewMenu.add(mnNewMenu_3);
-		ButtonGroup themeGrp = new ButtonGroup();
-		JRadioButtonMenuItem rdbtnmntmNewRadioItem_1 = new JRadioButtonMenuItem("Light");
-		mnNewMenu_3.add(rdbtnmntmNewRadioItem_1);
-
-		JRadioButtonMenuItem rdbtnmntmNewRadioItem = new JRadioButtonMenuItem("Dark");
-		rdbtnmntmNewRadioItem.setSelected(true);
-		mnNewMenu_3.add(rdbtnmntmNewRadioItem);
-		themeGrp.add(rdbtnmntmNewRadioItem);
-		themeGrp.add(rdbtnmntmNewRadioItem_1);
-
-		JMenu mnNewMenu_1 = new JMenu("Simulate");
-		menuBar.add(mnNewMenu_1);
-
-		JMenuItem mntmNewMenuItem_4 = new JMenuItem("Run");
-		mnNewMenu_1.add(mntmNewMenuItem_4);
-
-		JMenuItem mntmNewMenuItem_5 = new JMenuItem("Pause");
-		mnNewMenu_1.add(mntmNewMenuItem_5);
-
-		JMenuItem mntmNewMenuItem_6 = new JMenuItem("Stop");
-		mnNewMenu_1.add(mntmNewMenuItem_6);
-		JMenu marketPlacemenu = new JMenu("Marketplace");
-		menuBar.add(marketPlacemenu);
-		
-		JMenuItem importBtn = new JMenuItem("Import circuit");
-		importBtn.addActionListener(new ActionListener() {
-			
+		exitMenuBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new MarketplaceWindow();				
+				dispatchEvent(new WindowEvent(MainWindow.this, WindowEvent.WINDOW_CLOSING));
+			}
+		});
+		fileMenu.add(exitMenuBtn);
+
+		JMenu marketPlacemenu = new JMenu("Marketplace");
+		menuBar.add(marketPlacemenu);
+
+		JMenuItem importBtn = new JMenuItem("Import circuit");
+		importBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new MarketplaceWindow();
 			}
 		});
 		marketPlacemenu.add(importBtn);
 		JMenuItem uploadBtn = new JMenuItem("Upload circuit");
 		uploadBtn.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new UploadCircuitWizard();				
+				if (UserManager.getUserId() == -1) {
+					JOptionPane.showMessageDialog(null, "Log in to your account to upload your circuit");
+				} else {
+					new UploadCircuitWizard(renderCanvas.getSnapshot(renderCanvas.getZoomToFit(1024, 576), 1024, 576));
+				}
 			}
 		});
 		marketPlacemenu.add(uploadBtn);
+
+		JMenu accountMenu = new JMenu("Account");
+		menuBar.add(accountMenu);
+
+		JMenuItem logincreate = new JMenuItem("Login/Create account");
+		logincreate.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new LoginWindow();
+			}
+		});
+		accountMenu.add(logincreate);
+		JMenuItem logout = new JMenuItem("Logout");
+		logout.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				UserManager.logout();
+				profileName.setText("Guest");
+			}
+		});
+
+		accountMenu.add(logout);
+		profileName = new JMenuItem("Guest");
+		profileName.setEnabled(false);
+		menuBar.add(profileName);
+
 		this.setVisible(true);
 		setListeners();
 		slider.setLogValue(Driver.getDriver().speed);
@@ -366,7 +351,7 @@ public class MainWindow extends JFrame implements ActionListener {
 	}
 
 	void setComponentList(HashMap<String, String[]> mapping) {
-		tree = new JTree();
+
 		tree.setBackground(new Color(20, 20, 20));
 		tree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("Devices") {
 			/**
@@ -387,10 +372,14 @@ public class MainWindow extends JFrame implements ActionListener {
 	}
 
 	void setListeners() {
-		btnFullScreen.addActionListener(new ActionListener() {
+
+		fitBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				fullScreenButton();
+				renderCanvas
+						.setCamTransform(renderCanvas.getZoomToFit(renderCanvas.getWidth(), renderCanvas.getHeight()));
+				Driver.getDriver().Render();
+
 			}
 		});
 		stopButton.addActionListener(new ActionListener() {
@@ -417,15 +406,18 @@ public class MainWindow extends JFrame implements ActionListener {
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-
 				var clickedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
 				if (clickedNode != null)
 					if (clickedNode.getChildCount() == 0) {
 						if (e.getClickCount() == 2) {
-							Driver.getDriver().addComponent(clickedNode.toString(),
-									renderCanvas.screenToLocalPoint(
-											NumericUtilities.addPoint(new Point(200, renderCanvas.getHeight() / 2),
-													renderCanvas.getLocationOnScreen())));
+							try {
+								Driver.getDriver().addComponent(clickedNode.toString(),
+										renderCanvas.screenToLocalPoint(
+												NumericUtilities.addPoint(new Point(200, renderCanvas.getHeight() / 2),
+														renderCanvas.getLocationOnScreen())));
+							} catch (RuntimeException re) {
+								JOptionPane.showMessageDialog(null, re.getMessage());
+							}
 						}
 					}
 				renderCanvas.Render();
@@ -458,13 +450,56 @@ public class MainWindow extends JFrame implements ActionListener {
 		Driver.getDriver().StartSimulation();
 	}
 
-	public void fullScreenButton() {
-		System.out.println("Run button clicked");
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		System.out.println(e.getActionCommand());
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+		if(JOptionPane.showConfirmDialog(null, "Do you want to close", "Exit", JOptionPane.YES_NO_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+			dispose();
+		}else {
+			return;
+		}
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

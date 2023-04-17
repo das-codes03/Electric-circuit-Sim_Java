@@ -17,6 +17,9 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.IntelliJTheme;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
 import frontend.CircuitData.PackedData;
@@ -43,6 +46,9 @@ public class Driver {
 	}
 
 	public DeviceUI addComponent(String typeName, Point screenPos) {
+		if(isRunning()) {
+			throw new RuntimeException("Can't add component while simulation is running");
+		}
 		try {
 			Class<DeviceUI> act = (Class<DeviceUI>) Class.forName(descriptorPath + typeName + descriptorSuffix);
 			try {
@@ -68,22 +74,31 @@ public class Driver {
 		return addComponent(typeName, new Point(0, 0));
 	}
 
-	public void deleteComponent(DeviceUI comp) throws Exception {
+	public void deleteComponent(DeviceUI comp) {
+		if(isRunning()) {
+			throw new RuntimeException("Can't remove component while simulation is running");
+		}
 		int i = components.indexOf(comp);
 		if (i == -1)
-			throw new Exception("Component " + comp.getBackendClassName() + " not found.");
+			throw new RuntimeException("Component " + comp.getBackendClassName() + " not found.");
 		comp.remove();
 		components.remove(comp);
 	}
 
 	public void addWire(Wire w) {
+		if(isRunning()) {
+			throw new RuntimeException("Can't add wire while simulation is running");
+		}
 		wires.add(w);
 	}
 
-	public void deleteWire(Wire w) throws Exception {
+	public void deleteWire(Wire w) {
+		if(isRunning()) {
+			throw new RuntimeException("Can't remove wire while simulation is running");
+		}
 		int i = wires.indexOf(w);
 		if (i == -1)
-			throw new Exception("Wire not found.");
+			throw new RuntimeException("Wire not found.");
 		w.remove();
 		wires.remove(w);
 	}
@@ -136,6 +151,7 @@ public class Driver {
 	}
 
 	public void createFromData(PackedData data) {
+		clearCircuit();
 		boolean incompleteProperties = false;
 		try {
 		// put all components with their properties and location, position
@@ -193,7 +209,7 @@ public class Driver {
 		}
 	}
 
-	private void openFromFile(File f) {
+	private void openFromFile(File f) throws Exception {
 		try {
 			FileInputStream fileIn = new FileInputStream(f);
 			ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -212,8 +228,10 @@ public class Driver {
 		}
 	}
 
-	private void saveToFile(File f) {
-
+	private void saveToFile(File f) throws Exception {
+		if(isRunning()) {
+			throw new Exception("Can't save circuit while simulation is running.");
+		}
 		for (int i = 0; i < components.size(); ++i) {
 			components.get(i).setID(i);
 		}
@@ -231,7 +249,10 @@ public class Driver {
 		}
 	}
 
-	public void open() {
+	public void open() throws Exception {
+		if(isRunning()) {
+			throw new Exception("Can't open new circuit while simulation is running.");
+		}
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileFilter(new FileFilter() {
 			public String getDescription() {
@@ -250,13 +271,30 @@ public class Driver {
 
 		if (fileChooser.showOpenDialog(mainWin) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
-			openFromFile(file);
-			// load from file
+			try {
+				openFromFile(file);
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, e.getMessage());
+			}
 		}
 
 	}
-
-	public void save() {
+	public void clearCircuit() {
+		if(isRunning()) {
+			throw new RuntimeException("Can't clear circuit while simulation is running");
+		}
+		mainWin.refreshDescription();
+		while(!wires.isEmpty()) {
+			deleteWire(wires.get(0));
+		}
+		while(!components.isEmpty()) {
+			deleteComponent(components.get(0));
+		}
+	}
+	public void save() throws Exception {
+		if(isRunning()) {
+			throw new Exception("Can't save circuit while simulation is running.");
+		}
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileFilter(new FileFilter() {
 			public String getDescription() {
@@ -276,10 +314,17 @@ public class Driver {
 			if(!file.getName().endsWith(".sim")) {
 				file = new File(file.getPath()+".sim");
 			}
-			saveToFile(file);
+			try {
+				saveToFile(file);
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, e.getMessage());
+			}
 		}
 	}
-	public PackedData getPackedData() {
+	public PackedData getPackedData() throws Exception {
+		if(isRunning()) {
+			throw new Exception("Can't pack data while simulation is running.");
+		}
 		return new PackedData(wires, components);
 	}
 	
@@ -287,7 +332,7 @@ public class Driver {
 
 		new Driver();
 		
-		new LoginWindow();
+//		new LoginWindow();
 //		/
 //			UploadCircuitWizard.uploadCircuit(UserManager.getUserId(), "test circuit", "this is a test circuit", new PackedData(driver.wires, driver.components), null, true);
 //getDriver().createFromData(MarketplaceWindow.getCircuit(3));

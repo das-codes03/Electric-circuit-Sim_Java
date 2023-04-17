@@ -1,106 +1,75 @@
 package frontend;
 
-import javax.swing.JFrame;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.LocalDate;
-
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.RowSpec;
+import java.awt.Dialog;
 
-import frontend.CircuitData.PackedData;
-
-import java.awt.BorderLayout;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import java.awt.Dimension;
 import javax.swing.JCheckBox;
-import javax.swing.SwingConstants;
+import javax.swing.JDialog;
 import javax.swing.JButton;
+import javax.swing.JTextPane;
 
-public class UploadCircuitWizard extends JFrame{
-	private Dimension imgSize = new Dimension(1024,576);
+public class UploadCircuitWizard extends JDialog{
+
 	private JTextField textField;
-	private BufferedImage img = null;
-	public UploadCircuitWizard() {
-		this.setVisible(true);
-		this.setSize(500,300);
+	public UploadCircuitWizard(final BufferedImage img) {
+		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
 		this.setTitle("Upload circuit");
-		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
-		var canvas = Driver.getDriver().mainWin.renderCanvas;
-				
-		img =canvas.getSnapshot(canvas.getZoomToFit(imgSize.width,imgSize.height), imgSize.width, imgSize.height);
-		JScrollPane scr = new JScrollPane();
-		getContentPane().add(scr);
-		JPanel mainPane = new JPanel();
-		scr.setViewportView(mainPane);
-		mainPane.setLayout(new BorderLayout(0, 0));
+		getContentPane().setLayout(null);
 		
-		JPanel panel = new JPanel();
-		mainPane.add(panel);
+		JLabel lblNewLabel = new JLabel();
+		lblNewLabel.setIcon(new ImageIcon(img.getScaledInstance(img.getWidth()/2, img.getHeight()/2, Image.SCALE_SMOOTH)));
+		lblNewLabel.setBounds(10, 11, img.getWidth()/2, img.getHeight()/2);
+		getContentPane().add(lblNewLabel);
 		
-		JPanel panel_1 = new JPanel();
-		panel.add(panel_1);
-		panel_1.setLayout(new BoxLayout(panel_1, BoxLayout.Y_AXIS));
-		
-		JPanel panel_2 = new JPanel();
-		panel_2.setPreferredSize(new Dimension(300, 30));
-		panel_1.add(panel_2);
-		panel_2.setLayout(new BoxLayout(panel_2, BoxLayout.X_AXIS));
-		
-		JLabel lblNewLabel_1 = new JLabel("Name: ");
-		panel_2.add(lblNewLabel_1);
+		JLabel lblNewLabel_1 = new JLabel("Title");
+		lblNewLabel_1.setBounds(392+150, 21, 48, 14);
+		getContentPane().add(lblNewLabel_1);
 		
 		textField = new JTextField();
-		panel_2.add(textField);
+		textField.setBounds(392+150, 36, 208, 30);
+		getContentPane().add(textField);
 		textField.setColumns(10);
 		
-		JPanel panel_3 = new JPanel();
-		panel_1.add(panel_3);
-		panel_3.setLayout(new BoxLayout(panel_3, BoxLayout.Y_AXIS));
-		
 		JLabel lblNewLabel_2 = new JLabel("Description");
-		panel_3.add(lblNewLabel_2);
+		lblNewLabel_2.setBounds(392+150, 77, 92, 14);
+		getContentPane().add(lblNewLabel_2);
 		
-		JTextArea textArea = new JTextArea();
-		textArea.setRows(6);
-		panel_3.add(textArea);
+		JTextPane textPane = new JTextPane();
+		textPane.setBounds(392+150, 92, 208, 228);
+		getContentPane().add(textPane);
 		
 		JCheckBox chckbxNewCheckBox = new JCheckBox("Is public?");
-		panel_3.add(chckbxNewCheckBox);
+		chckbxNewCheckBox.setBounds(402+150, 327, 99, 23);
+		getContentPane().add(chckbxNewCheckBox);
 		
-		JButton btnNewButton = new JButton("Upload");
+		JButton btnNewButton = new JButton("UPLOAD!");
 		btnNewButton.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				UserManager.uploadCircuit(UserManager.getUserId(), textField.getText(), textArea.getText(), Driver.getDriver().getPackedData(), img, chckbxNewCheckBox.isSelected());
+				try {
+					UserManager.uploadCircuit(UserManager.getUserId(), textField.getText(), textPane.getText(), Driver.getDriver().getPackedData(), img, chckbxNewCheckBox.isSelected());
+					JOptionPane.showMessageDialog(null, "Circuit was uploaded!");
+					dispose();
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(null, e1.getMessage());
+				}
 			}
 		});
-		panel_1.add(btnNewButton);
+		btnNewButton.setBounds(511+150, 327, 89, 23);
+		getContentPane().add(btnNewButton);
 		
-		JLabel lblNewLabel_3 = new JLabel(new ImageIcon(img.getScaledInstance(imgSize.width/2, imgSize.height/2, Image.SCALE_SMOOTH)));
-		mainPane.add(lblNewLabel_3, BorderLayout.WEST);
-		
+		this.setSize(622+150,401);
+		this.setResizable(false);
+		this.setVisible(true);
 	}
-	
-	
 }

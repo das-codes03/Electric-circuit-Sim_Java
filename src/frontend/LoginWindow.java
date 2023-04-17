@@ -3,7 +3,9 @@ package frontend;
 import javax.swing.JInternalFrame;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 
 import com.jgoodies.forms.layout.FormLayout;
@@ -12,6 +14,8 @@ import com.jgoodies.forms.layout.RowSpec;
 import com.jgoodies.forms.layout.FormSpecs;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
+
 import javax.swing.JTabbedPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -29,7 +33,7 @@ import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import java.awt.Font;
 
-public class LoginWindow extends JFrame {
+public class LoginWindow extends JDialog {
 	private JTextField textField;
 	private JPasswordField textField_1;
 	private JTextField textField_2;
@@ -37,10 +41,7 @@ public class LoginWindow extends JFrame {
 	private JPasswordField textField_4;
 
 	public LoginWindow() {
-		this.setSize(300, 250);
-		this.setResizable(false);
-		this.setTitle("USER");
-		this.setVisible(true);
+		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
 		getContentPane().setLayout(new BorderLayout(0, 0));
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -76,7 +77,7 @@ public class LoginWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				if(UserManager.login(textField.getText(), String.copyValueOf(textField_1.getPassword()))) {
+				if (UserManager.login(textField.getText(), String.copyValueOf(textField_1.getPassword()))) {
 					dispose();
 				}
 			}
@@ -126,19 +127,39 @@ public class LoginWindow extends JFrame {
 
 		JButton btnNewButton_1 = new JButton("Create account");
 		btnNewButton_1.addActionListener(new ActionListener() {
-			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				if(UserManager.createAccount(textField_2.getText(),String.copyValueOf(textField_4.getPassword()))) {
-					UserManager.login(textField_2.getText(),String.copyValueOf(textField_4.getPassword()));
+
+				String p1 = String.copyValueOf(textField_3.getPassword());
+				String p2 = String.copyValueOf(textField_4.getPassword());
+				if (!p1.equals(p2)) {
+					JOptionPane.showMessageDialog(null, "Password fields don't match.");
+					return;
+				}
+				String usr = textField_2.getText();
+
+				// Validate username:
+				if (!UserManager.validateUsername(usr)) {
+					JOptionPane.showMessageDialog(null,
+							"Enter proper username. Must be alphanumeric characters only with no spaces.");
+				} else if (!UserManager.validatePwd(p2)) {
+					JOptionPane.showMessageDialog(null,
+							"Enter proper password. Minimum eight characters, at least one letter, one number and one special character.");
+				} else
+
+				if (UserManager.createAccount(usr, p2)) {
+					UserManager.login(textField_2.getText(), String.copyValueOf(textField_4.getPassword()));
 					dispose();
 				}
 			}
 		});
 		btnNewButton_1.setBounds(129, 138, 124, 23);
 		panel_1.add(btnNewButton_1);
+//		pack();
+		this.setSize(300, 250);
+		this.setResizable(false);
+		this.setTitle("USER");
+		this.setVisible(true);
 	}
 
-	
 }
