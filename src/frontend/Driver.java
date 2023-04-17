@@ -287,9 +287,10 @@ public class Driver {
 
 		new Driver();
 		
-			UserManager.login("dummy", "1234");
+		new LoginWindow();
+//		/
 //			UploadCircuitWizard.uploadCircuit(UserManager.getUserId(), "test circuit", "this is a test circuit", new PackedData(driver.wires, driver.components), null, true);
-getDriver().createFromData(MarketplaceWindow.getCircuit(3));
+//getDriver().createFromData(MarketplaceWindow.getCircuit(3));
 //		String test = "";
 //		for (var s : args) {
 //			test += s + "\n";

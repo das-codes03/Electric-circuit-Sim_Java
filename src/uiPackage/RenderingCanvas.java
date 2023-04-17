@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
 import frontend.MainWindow;
+import utilities.NumericUtilities;
 import frontend.Driver;
 
 public class RenderingCanvas extends JPanel implements MouseInputListener, MouseWheelListener {
@@ -38,14 +39,9 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	Color gridColor = new Color(20, 30, 20);
 	Color secondaryGridColor = new Color(10, 20, 10);
 	private static final long serialVersionUID = 6803922477054275835L;
-
-	/** Here screen will be stored. */
-	private BufferedImage renderImage;
-	private BufferedImage animationLayer;
-
 	private MainWindow mw;
 	/** Transformation of the camera. */
-	AffineTransform camTransform;
+	private AffineTransform camTransform;
 	/** Last clicked point in local space. */
 	Point lastClicked;
 	currentMode mode;
@@ -54,7 +50,7 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 	private long minLayer;
 	/** Size of each box in component grid. */
 	private int boxSize = 200;
-	double quality = 1;
+
 	// **Higher level, low quality, better performance.*/
 	double lodMultiplier = 5;
 	/** Component grid divisions. */
@@ -76,7 +72,14 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		return local;
 	}
 
-	public void zoomToFit() {
+	public void setCamTransform(AffineTransform at) {
+		camTransform = at;
+	}
+
+	public AffineTransform getZoomToFit(int width, int height) {
+
+		AffineTransform at = new AffineTransform();
+
 		// get extreme boxes:
 		var bnds = objectsMap.getBoundingRange();
 		int minX = bnds[0];
@@ -89,19 +92,19 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		double h = (maxY - minY + 1) * objectsMap.boxSize;
 
 		// get target scale
-		double tarScale = Math.min(getWidth() / w,  getHeight() / h);
-		
-		//we need to get extra margin
-		double margX = getWidth()/tarScale-w;
-		double margY = getHeight()/tarScale-h;
-		
+		double tarScale = Math.min(width / w, height / h);
+
+		// we need to get extra margin
+		double margX = width / tarScale - w;
+		double margY = height / tarScale - h;
+
 //		double offX = (maxX-minX)/2.0;
-		camTransform.setToTranslation(minX * objectsMap.boxSize-margX/2, minY * objectsMap.boxSize-margY/2);
+		at.setToTranslation(minX * objectsMap.boxSize - margX / 2, minY * objectsMap.boxSize - margY / 2);
 
-		camTransform.scale(tarScale, tarScale);
-		//next get offset
-		Render();
-
+		at.scale(tarScale, tarScale);
+		// next get offset
+//		Render();
+		return at;
 	}
 
 	/** Data structure to store components in grid. */
@@ -289,18 +292,6 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		}
 	}
 
-	public boolean reset(double quality) {
-		try {
-			renderImage = new BufferedImage((int) Math.ceil(getWidth() * quality),
-					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_RGB);
-			animationLayer = new BufferedImage((int) Math.ceil(getWidth() * quality),
-					(int) Math.ceil(getHeight() * quality), BufferedImage.TYPE_INT_ARGB);
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
 	public void zoom(Point focus, double targetZoom) {
 		Point center = screenToLocalPoint(focus);
 
@@ -324,14 +315,10 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		this.camTransform = new AffineTransform();
 		this.minLayer = 0;
 		this.setDoubleBuffered(true);
-		renderImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
 		this.addMouseWheelListener(this);
 		this.addMouseMotionListener(this);
 		this.addMouseListener(this);
 		this.objectsMap = new ComponentMapping(boxSize);
-//		var temp = new DeviceToolbox();
-//		this.add(temp);
-//		temp.setLocation(new Point(20, 30));
 	}
 
 	int getLOD() {
@@ -339,65 +326,85 @@ public class RenderingCanvas extends JPanel implements MouseInputListener, Mouse
 		return l;
 	}
 
-	private void drawGrid(Graphics2D g) {
+	private void drawGrid(Graphics2D g, AffineTransform camTrans, int w, int h) {
 		int basegap = 100;
-		var scale = camTransform.getScaleX();
-		var offX = camTransform.getTranslateX();
-		var offY = camTransform.getTranslateY();
+		var scale = camTrans.getScaleX();
+		var offX = camTrans.getTranslateX();
+		var offY = camTrans.getTranslateY();
 		int logzoom = (int) (Math.log(scale) / Math.log(2));
 		int gap = (int) (basegap / Math.pow(2, logzoom));
 
 		g.setColor(gridColor);
 
-		for (double i = -gap * scale; i < getWidth() + gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < w + gap * scale; i += gap * scale) {
 			var shift = (-offX % gap) * scale;
-			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
+			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), h);
 		}
-		for (double i = -gap * scale; i < getHeight() + gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < h + gap * scale; i += gap * scale) {
 			var shift = (-offY % gap) * scale;
-			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
+			g.drawLine(0, (int) Math.round(i + shift), w, (int) Math.round(i + shift));
 		}
 		g.setColor(secondaryGridColor);
 
-		for (double i = -gap * scale; i < getWidth() + gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < w + gap * scale; i += gap * scale) {
 			var shift = (-offX % gap + gap / 2) * scale;
-			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), this.getHeight());
+			g.drawLine((int) Math.round(i + shift), 0, (int) Math.round(i + shift), h);
 		}
-		for (double i = -gap * scale; i < getHeight() + gap * scale; i += gap * scale) {
+		for (double i = -gap * scale; i < h + gap * scale; i += gap * scale) {
 			var shift = (-offY % gap + gap / 2) * scale;
-			g.drawLine(0, (int) Math.round(i + shift), this.getWidth(), (int) Math.round(i + shift));
+			g.drawLine(0, (int) Math.round(i + shift), w, (int) Math.round(i + shift));
 		}
 	}
 
-	@Override
-	public void paintComponent(Graphics g) {
-
-		reset(quality);
+	public BufferedImage getSnapshot(AffineTransform camTrans, int w, int h) {
+		BufferedImage renderImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D renderContext = (Graphics2D) renderImage.getGraphics();
-		Graphics2D animContext = (Graphics2D) animationLayer.getGraphics();
-		renderContext.scale(quality, quality);
-		drawGrid(renderContext);
-
-		var p1 = screenToLocalPoint(getLocationOnScreen());
-		var p2 = screenToLocalPoint(
-				new Point(getLocationOnScreen().x + getWidth(), getLocationOnScreen().y + getHeight()));
+		drawGrid(renderContext, camTrans, w, h);
+		var p1 = new Point((int) camTrans.getTranslateX(), (int) camTrans.getTranslateY());
+		var p2 = NumericUtilities.addPoint(p1,
+				new Point((int) (w / camTrans.getScaleX()), (int) (h / camTrans.getScaleY())));
 		var dim = new Dimension(p2.x - p1.x, p2.y - p1.y);
 		renderContext.setColor(Color.red);
 
 		var raw = objectsMap.getComponentsInRect(p1, dim);
 		var inRect = raw.toArray(new CanvasDrawable[raw.size()]);
 
-		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
-		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
-		animContext.setTransform(renderContext.getTransform());
+		renderContext.scale(camTrans.getScaleX(), camTrans.getScaleY());
+		renderContext.translate(-camTrans.getTranslateX(), -camTrans.getTranslateY());
 		for (int i = inRect.length - 1; i >= 0; --i) {
 			var c = inRect[i];
 			if (c.isVisible())
 				c.update(renderContext);
 		}
+		return renderImage;
+	}
 
-		g.drawImage(renderImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
-		g.drawImage(animationLayer.getScaledInstance(getWidth(), getHeight(), Image.SCALE_FAST), 0, 0, this);
+	@Override
+	public void paintComponent(Graphics g) {
+
+//		reset(1);
+//		Graphics2D renderContext = (Graphics2D) renderImage.getGraphics();
+//		drawGrid(renderContext);
+//
+//		var p1 = screenToLocalPoint(getLocationOnScreen());
+//		var p2 = screenToLocalPoint(
+//				new Point(getLocationOnScreen().x + getWidth(), getLocationOnScreen().y + getHeight()));
+//		var dim = new Dimension(p2.x - p1.x, p2.y - p1.y);
+//		renderContext.setColor(Color.red);
+//
+//		var raw = objectsMap.getComponentsInRect(p1, dim);
+//		var inRect = raw.toArray(new CanvasDrawable[raw.size()]);
+//
+//		renderContext.scale(camTransform.getScaleX(), camTransform.getScaleY());
+//		renderContext.translate(-camTransform.getTranslateX(), -camTransform.getTranslateY());
+//		for (int i = inRect.length - 1; i >= 0; --i) {
+//			var c = inRect[i];
+//			if (c.isVisible())
+//				c.update(renderContext);
+//		}
+
+		g.drawImage(getSnapshot(camTransform, getWidth(), getHeight()), 0, 0, this);
+
 	}
 
 	@Override

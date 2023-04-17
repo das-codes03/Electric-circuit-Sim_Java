@@ -25,7 +25,7 @@ import uiPackage.ResourceManager;
 import utilities.NumericUtilities;
 
 public class LedDescriptor extends DeviceUI {
-	private Color color = new Color(255, 0, 0);
+	private Color color = new Color(0, 0, 255);
 	private double intensity = 0;
 	private double current = 0;
 	private double ratedVoltage = 1;

@@ -309,10 +309,8 @@ public class Circuit {
 	RealMatrix solveCurrent(double dt) throws Exception {
 		if(loops.size() == 0)return _i_mat;
 		var _lhs = (_r_mat).add(_l_mat.scalarMultiply(1/dt));
-		var _rhs = (_l_mat.multiply(_i_mat.scalarMultiply(dt))).add(_e_mat);
-
-		var solver  = new CholeskyDecomposition(_lhs,Double.POSITIVE_INFINITY,0);
-
+		var _rhs = (_l_mat.multiply(_i_mat.scalarMultiply(1/dt))).add(_e_mat);
+		var solver  = new RRQRDecomposition(_lhs,-1.0);		//rank-revealing QR factorization
 		_i_mat = solver.getSolver().solve(_rhs);
 		for (int i = 0; i < _i_mat.getRowDimension(); ++i) {
 			double curr = FastMath.abs(_i_mat.getEntry(i,0));

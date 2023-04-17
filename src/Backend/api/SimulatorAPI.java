@@ -54,7 +54,7 @@ public class SimulatorAPI implements Runnable {
 				c.initialiseCircuit();
 				initialized = true;
 				for (var data : identifiers.values()) {
-					data.updateState(0, 0);
+					data.updateState(0, dt);
 				}
 			}
 			c.generateEmfMatrix();

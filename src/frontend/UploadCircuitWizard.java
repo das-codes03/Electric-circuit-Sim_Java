@@ -2,10 +2,13 @@ package frontend;
 
 import javax.swing.JFrame;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -34,22 +37,22 @@ import javax.swing.SwingConstants;
 import javax.swing.JButton;
 
 public class UploadCircuitWizard extends JFrame{
+	private Dimension imgSize = new Dimension(1024,576);
 	private JTextField textField;
+	private BufferedImage img = null;
 	public UploadCircuitWizard() {
 		this.setVisible(true);
 		this.setSize(500,300);
 		this.setTitle("Upload circuit");
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
-
+		var canvas = Driver.getDriver().mainWin.renderCanvas;
+				
+		img =canvas.getSnapshot(canvas.getZoomToFit(imgSize.width,imgSize.height), imgSize.width, imgSize.height);
 		JScrollPane scr = new JScrollPane();
 		getContentPane().add(scr);
 		JPanel mainPane = new JPanel();
 		scr.setViewportView(mainPane);
 		mainPane.setLayout(new BorderLayout(0, 0));
-		
-		JLabel lblNewLabel = new JLabel("Upload circuit");
-		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		mainPane.add(lblNewLabel);
 		
 		JPanel panel = new JPanel();
 		mainPane.add(panel);
@@ -89,34 +92,15 @@ public class UploadCircuitWizard extends JFrame{
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				uploadCircuit(UserManager.getUserId(), textField.getText(), textArea.getText(), Driver.getDriver().getPackedData(), null, true);
+				UserManager.uploadCircuit(UserManager.getUserId(), textField.getText(), textArea.getText(), Driver.getDriver().getPackedData(), img, chckbxNewCheckBox.isSelected());
 			}
 		});
 		panel_1.add(btnNewButton);
 		
+		JLabel lblNewLabel_3 = new JLabel(new ImageIcon(img.getScaledInstance(imgSize.width/2, imgSize.height/2, Image.SCALE_SMOOTH)));
+		mainPane.add(lblNewLabel_3, BorderLayout.WEST);
+		
 	}
 	
-	public static void uploadCircuit(long userId, String title, String description, PackedData data, Image img, boolean isPublic) {
 	
-			Connection con = UserManager.getConnection();
-			if(con == null) {
-				JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please try again later.");
-				return;
-			}
-			
-			String command = "insert into savedCircuits(userId, isPublic, title, descr, circuitFile, dateOfUpload) values(?,?,?,?,?,?)";
-			
-			try(PreparedStatement stmt = con.prepareStatement(command)){
-				stmt.setLong(1, UserManager.getUserId());
-				stmt.setBoolean(2,isPublic);
-				stmt.setString(3, title);
-				stmt.setString(4, description);
-				stmt.setObject(5, data);
-				stmt.setDate(6, Date.valueOf(LocalDate.now()));		//TODO: use date from internet not
-				stmt.executeUpdate();
-				System.out.println("Uploaded circuit");
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-	}
 }

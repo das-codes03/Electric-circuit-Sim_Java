@@ -112,7 +112,8 @@ public class MainWindow extends JFrame implements ActionListener {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				renderCanvas.zoomToFit();
+				renderCanvas.setCamTransform(renderCanvas.getZoomToFit(renderCanvas.getWidth(),renderCanvas.getHeight()));
+				Driver.getDriver().Render();
 				
 			}
 		});

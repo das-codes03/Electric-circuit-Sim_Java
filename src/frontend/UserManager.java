@@ -1,26 +1,44 @@
 package frontend;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.sql.Blob;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
+
+import frontend.CircuitData.PackedData;
 
 public class UserManager {
 
 	private static Long userId = null;
+
 	public static long getUserId() {
-		if(userId == null) {
+		if (userId == null) {
 			return -1;
 		}
 		return userId;
 	}
+
 	public static Connection con = null;
 
 	public static Connection getConnection() {
-		if(con == null) {
+		if (con == null) {
 			try {
 				connectToDatabase();
 				return con;
@@ -30,7 +48,7 @@ public class UserManager {
 		}
 		return con;
 	}
-	
+
 	private static void connectToDatabase() throws SQLException {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -43,15 +61,38 @@ public class UserManager {
 		System.out.println("Connection established");
 	}
 
-	public static boolean login(String username, String password) {
+	public static boolean createAccount(String userName, String pwd) {
+		Connection con = getConnection();
 		if (con == null) {
-			try {
-				connectToDatabase();
-			} catch (SQLException e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(null,
-						"Counldn't connect to server. Please check your internet connection");
+			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please check your internet connection");
+		}
+		String command = "SELECT * from userInformation where userName = '" + userName+"'";
+		try(Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(command)){
+			if(rs.next()) {
+				JOptionPane.showMessageDialog(null, "User already exists, try using a different username");
+				return false;
+			}else {
+				String createAccCommand = "insert into userInformation (userName, pwd) values (?,?)";
+				PreparedStatement stmt2 = con.prepareStatement(createAccCommand);
+				stmt2.setString(1,userName);
+				stmt2.setString(2, pwd);
+				stmt2.executeUpdate();
+				JOptionPane.showMessageDialog(null, "Account " + userName + " created successfully");
+				return true;
 			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean login(String username, String password) {
+		Connection con = getConnection();
+		if (con == null) {
+
+			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please check your internet connection");
+
 		}
 
 		String command = "SELECT * FROM userInformation WHERE userName = '" + username + "'";
@@ -77,5 +118,81 @@ public class UserManager {
 		}
 		return false;
 
+	}
+
+	public static boolean uploadCircuit(long userId, String title, String description, PackedData data,
+			BufferedImage img, boolean isPublic) {
+
+		Connection con = UserManager.getConnection();
+		if (con == null) {
+			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please try again later.");
+			return false;
+		}
+
+		String command = "insert into savedCircuits(userId, isPublic, title, descr, circuitFile, circuitImage) values(?,?,?,?,?,?)";
+
+		try (PreparedStatement stmt = con.prepareStatement(command)) {
+			stmt.setLong(1, UserManager.getUserId());
+			stmt.setBoolean(2, isPublic);
+			stmt.setString(3, title);
+			stmt.setString(4, description);
+			stmt.setObject(5, data);
+			Blob blob = con.createBlob();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(img, "png", baos);
+			byte[] imageInByte = baos.toByteArray();
+			blob.setBytes(1, imageInByte);
+			stmt.setBlob(6, blob);
+			stmt.executeUpdate();
+			System.out.println("Uploaded circuit");
+			return true;
+		} catch (SQLException | IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static PackedData getCircuit(long circuitId) {
+		Connection con = UserManager.getConnection();
+		if (con == null) {
+			JOptionPane.showMessageDialog(null, "Counldn't connect to server. Please try again later.");
+			return null;
+		}
+		String command = "SELECT * from savedCircuits where circuitId = " + circuitId;
+		try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(command)) {
+			while (rs.next()) {
+				byte[] buf = rs.getBytes("circuitFile");
+				ObjectInputStream objectIn = null;
+				if (buf != null)
+					objectIn = new ObjectInputStream(new ByteArrayInputStream(buf));
+				try {
+					return (PackedData) objectIn.readObject();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return (PackedData) rs.getObject("circuitFile");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		JOptionPane.showMessageDialog(null, "No circuit was found.");
+		return null;
+	}
+
+	public static boolean validatePwd(String pwd) {
+		String regex = "^(?=.*\\\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%]).{8,20}$";
+		Pattern pat = Pattern.compile(regex);
+		Matcher matcher = pat.matcher(pwd);
+		return matcher.matches();
+	}
+
+	public static boolean validateUsername(String usr) {
+		String regex = "^[A-Za-z]\\w{5, 29}$";
+		Pattern pat = Pattern.compile(regex);
+		Matcher matcher = pat.matcher(usr);
+		return matcher.matches();
 	}
 }
