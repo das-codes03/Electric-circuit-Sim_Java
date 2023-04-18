@@ -37,7 +37,7 @@ public class Diode extends Component {
 		var pot = -segments[1].getCharge() / segments[1].getCapacitance();
 		double res = (double) getProperty(RESISTANCE);
 		if (pot < 0) {// rev
-			res = -pot / (double) getProperty(SATURATION_CURRENT);
+			res =Math.max(res, -pot / (double) getProperty(SATURATION_CURRENT));
 		} else {// forw
 			var forRes = ((double) getProperty(KNEE_VOLTAGE) - pot) / (double) getProperty(KNEE_VOLTAGE);
 			if (Double.isNaN(forRes))
