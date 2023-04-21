@@ -79,9 +79,10 @@ public class InductorDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(ACSource.CURRENT);
+		this.t = t;
 	}
 
 	@Override

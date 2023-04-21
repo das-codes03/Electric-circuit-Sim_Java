@@ -114,9 +114,10 @@ public class LedDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		current = (double) data.get(Bulb.CURRENT);
 		intensity = (double) data.get(Bulb.INTENSITY);
+		this.t = t;
 	}
 
 	@Override

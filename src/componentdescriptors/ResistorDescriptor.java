@@ -14,8 +14,10 @@ import javax.swing.event.ChangeListener;
 
 import circuitlogic.solver.devices.ACSource;
 import circuitlogic.solver.devices.Resistor;
+import simulatorgui.Driver;
 import simulatorgui.rendering.Animable;
 import simulatorgui.rendering.DeviceUI;
+import simulatorgui.rendering.GraphingWindow;
 import simulatorgui.rendering.LogarithmicSlider;
 import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
@@ -27,6 +29,8 @@ public class ResistorDescriptor extends DeviceUI {
 	private static final long serialVersionUID = -4730436519437429724L;
 	private double resistance = 0.1d;
 	private double current = 0;
+	private final long graphId;
+
 	public ResistorDescriptor(RenderingCanvas canvas) throws IOException {
 		this(canvas, new Point(0, 0));
 	}
@@ -49,6 +53,7 @@ public class ResistorDescriptor extends DeviceUI {
 			}
 		});
 		this.setLocation(position);
+		graphId = Driver.getDriver().mainWin.graphs.addChannel(Color.green);
 	}
 
 	@Override
@@ -78,20 +83,27 @@ public class ResistorDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(ACSource.CURRENT);
+		this.t = t;
 	}
 
 	@Override
 	public HashMap<String, Object> readProperties() {
 		HashMap<String, Object> data = new HashMap<>();
 		data.put(Resistor.RESISTANCE, resistance);
+		drawGraph();
 		return data;
 	}
 
 	@Override
 	public void writeProperties(HashMap<String, Object> data) {
 		resistance = (double) data.get(Resistor.RESISTANCE);
+	}
+
+	public void drawGraph() {
+		Driver.getDriver().mainWin.graphs.addEntry(current, t, graphId);
+//		t+=0.01;
 	}
 }

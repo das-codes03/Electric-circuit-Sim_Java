@@ -85,9 +85,10 @@ public class SwitchDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		// TODO Auto-generated method stub
 		current = (double) data.get(Switch.CURRENT);
+		this.t = t;
 	}
 
 	@Override

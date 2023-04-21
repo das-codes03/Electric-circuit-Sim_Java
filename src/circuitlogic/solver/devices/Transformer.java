@@ -49,7 +49,7 @@ public class Transformer extends Component {
 			var secEmf = m * (primcurrent - prevPrimCurrent) / dt;
 			var primEmf = m * (seccurrent - prevSecCurrent) / dt;
 			segments[0].setEMF(-primEmf);
-			segments[1].setEMF(-secEmf);
+			segments[1].setEMF(secEmf);
 		}
 		prevPrimCurrent = primcurrent;
 		prevSecCurrent = seccurrent;

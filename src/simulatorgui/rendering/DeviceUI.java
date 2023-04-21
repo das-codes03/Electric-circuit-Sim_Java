@@ -31,8 +31,9 @@ public abstract class DeviceUI extends CanvasDrawable {
 	/** Image source. */
 	private ArrayList<BufferedImage> rawimage;
 	private double rotation = 00d; // in degrees
+	protected double t;
 	protected Map<NodeUI, Point> nodes; // node_reference->localposition
-
+	
 	public NodeUI getNode(int index) {
 		for (var n : nodes.keySet()) {
 			if (n.getNodeIndex() == index) {
@@ -255,8 +256,7 @@ public abstract class DeviceUI extends CanvasDrawable {
 	}
 
 	public abstract HashMap<String, Object> readProperties();
-
-	public abstract void writeState(HashMap<String, Object> data);
+	public abstract void writeState(HashMap<String, Object> data, double t);
 
 	public abstract void writeProperties(HashMap<String, Object> data);
 

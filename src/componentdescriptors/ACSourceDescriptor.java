@@ -118,9 +118,9 @@ public class ACSourceDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
-		// TODO Auto-generated method stub
+	public void writeState(HashMap<String, Object> data, double t) {
 		current = (double) data.get(ACSource.CURRENT);
+		this.t = t;
 	}
 
 	@Override

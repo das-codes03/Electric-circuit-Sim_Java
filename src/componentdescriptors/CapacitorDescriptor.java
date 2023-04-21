@@ -97,8 +97,9 @@ public class CapacitorDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		current = (double) data.get(ACSource.CURRENT);
+		this.t = t;
 	}
 
 	@Override

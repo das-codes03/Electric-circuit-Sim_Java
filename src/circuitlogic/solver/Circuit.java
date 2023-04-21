@@ -305,9 +305,7 @@ public class Circuit {
 			for (int i = rightList.size() - 1; i >= 0; --i) {
 				l.includeSegment(rightList.get(i), index, true);
 			}
-
-			l.includeSegment(e, index, e.n0.depth >= e.n1.depth); // Adds a segment to loop, and sets belonging loop
-																	// index of segment
+			l.includeSegment(e, index, e.n0.depth >= e.n1.depth); // Adds a segment to loop, and sets belonging loop															// index of segment
 			loops.add(l);
 		}
 	}

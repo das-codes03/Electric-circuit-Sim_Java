@@ -61,7 +61,7 @@ public class SimulationEvent implements Runnable {
 		Thread thr = new Thread(sim);
 		thr.start();
 
-		int framesPerSecond = 120;
+		int framesPerSecond = 30;
 		int stepMS = (int) (1000.0 / framesPerSecond);
 		double lastCaptured = 0;
 		while (running && sim.getMode() != mode.TERMINATED) {
@@ -82,7 +82,7 @@ public class SimulationEvent implements Runnable {
 					lastCaptured = sim.state.getT();
 					flag = true;
 					for (var k : sim.state.stateData.keySet()) {
-						devices.get(k).writeState(sim.state.stateData.get(k));
+						devices.get(k).writeState(sim.state.stateData.get(k), lastCaptured);
 					}
 				}
 			}
@@ -100,6 +100,7 @@ public class SimulationEvent implements Runnable {
 					e.printStackTrace();
 				}
 			}
+			Driver.getDriver().mainWin.graphs.currT = lastCaptured;
 			Driver.getDriver().mainWin.runningLabel.setText("RUNNING | Time elapsed = " +NumericUtilities.getPrefixed(lastCaptured, 6) + "s");
 			
 		}

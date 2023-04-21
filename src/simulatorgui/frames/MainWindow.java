@@ -44,6 +44,7 @@ import javax.swing.tree.DefaultTreeModel;
 
 import simulatorgui.Driver;
 import simulatorgui.UserManager;
+import simulatorgui.rendering.GraphingWindow;
 import simulatorgui.rendering.LogarithmicSlider;
 import simulatorgui.rendering.RenderingCanvas;
 import utilities.NumericUtilities;
@@ -59,6 +60,7 @@ public class MainWindow extends JFrame implements ActionListener, WindowListener
 	 */
 
 	public final RenderingCanvas renderCanvas;
+	public final GraphingWindow graphs;
 	public final JPanel descriptionPanel;
 	public final String playButtonImgPath = "/resources/playpause.png";
 	public final String stopButtonImgPath = "/resources/stop.png";
@@ -87,10 +89,14 @@ addWindowListener(this);
 		JPanel simSpace = new JPanel();
 		this.getContentPane().add(simSpace);
 		simSpace.setLayout(new BoxLayout(simSpace, BoxLayout.X_AXIS));
+JSplitPane VerticalPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
 		JSplitPane HorizontalPane = new JSplitPane();
+		VerticalPane.setTopComponent(HorizontalPane);
+		graphs = new GraphingWindow();
+		VerticalPane.setBottomComponent(graphs);
 		HorizontalPane.setDividerSize(8);
-		simSpace.add(HorizontalPane);
+		simSpace.add(VerticalPane);
 
 		JPanel ToolboxPane = new JPanel();
 		ToolboxPane.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
@@ -478,6 +484,7 @@ addWindowListener(this);
 		
 		if(JOptionPane.showConfirmDialog(null, "Do you want to close", "Exit", JOptionPane.YES_NO_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
 			dispose();
+			System.exit(0);
 		}else {
 			return;
 		}

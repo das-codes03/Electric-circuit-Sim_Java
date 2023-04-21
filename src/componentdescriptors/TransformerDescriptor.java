@@ -116,11 +116,11 @@ public class TransformerDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		// TODO Auto-generated method stub
 		primarycurrent = (double) data.get(Transformer.PRIMARY_CURRENT);
 		secondarycurrent = (double) data.get(Transformer.SECONDARY_CURRENT);
-
+		this.t = t;
 	}
 
 	@Override

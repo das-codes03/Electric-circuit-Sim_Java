@@ -137,12 +137,13 @@ public class SevenSegDspDescriptor extends DeviceUI {
 	}
 
 	@Override
-	public void writeState(HashMap<String, Object> data) {
+	public void writeState(HashMap<String, Object> data, double t) {
 		// TODO Auto-generated method stub
 		for(int i = 0; i < intensities.length; ++i)
 		{
 			intensities[i] = (double) data.get(SevenSegmentDisplay.INTENSITIES[i]);
 		}
+		this.t = t;
 		current = (double) data.get(SevenSegmentDisplay.CURRENT);
 	}
 

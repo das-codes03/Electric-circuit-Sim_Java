@@ -8,6 +8,7 @@ import javax.naming.directory.AttributeInUseException;
 import javax.swing.JOptionPane;
 
 import simulatorgui.Driver;
+import utilities.NumericUtilities;
 
 public class SimulatorAPI implements Runnable {
 
@@ -17,20 +18,22 @@ public class SimulatorAPI implements Runnable {
 	public final SimulationState state;
 	private Circuit c;
 	private double timeScale;
+	private static final double MIN_SIM_RATE = 10;
+	private static final double MAX_SIM_RATE = 1000;
 
-	
 	public class SimulationState {
 		private SimulationState() {
 			stateData = new HashMap<>();
 			timeStamp = 0;
 		}
+
 		public double getT() {
 			return timeStamp;
 		}
+
 		private double timeStamp;
 		public HashMap<Integer, HashMap<String, Object>> stateData;
 	}
-
 
 	public SimulatorAPI() {
 		this.timeScale = 1;
@@ -77,7 +80,6 @@ public class SimulatorAPI implements Runnable {
 		return t2 - t1;
 	}
 
-	
 	public void addComponent(int identifier, String componentName) throws Exception {
 		if (identifiers.containsKey(identifier)) {
 			throw new AttributeInUseException("Key " + identifier + " already exists");
@@ -142,28 +144,46 @@ public class SimulatorAPI implements Runnable {
 
 	public void run() {
 		int simulationRate = 100;
-		int stepMS = (int) (1000.0 / simulationRate);
+		
+		var startT = System.nanoTime();
+		long accumulator = 0;
+
 		long elapsed = 0;
 		while (CurrMode != mode.TERMINATED) {
+			var prevT = startT;
+			startT = System.nanoTime();
+			timeScale = Driver.getDriver().speed;
+			accumulator += timeScale * (startT - prevT);
 			while (CurrMode == mode.PAUSED)
 				; // wait while paused
-			timeScale = Driver.getDriver().speed;
+
+			if (accumulator < 0) {
+				continue;
+			}
 			try {
-				elapsed = simulateStep(timeScale / simulationRate, 10);
+				elapsed = simulateStep(timeScale / simulationRate, 1);
 			} catch (Exception e1) {
 				System.err.println("SHORT");
 				JOptionPane.showMessageDialog(null, e1.getMessage(), "Simulation failure", JOptionPane.ERROR_MESSAGE);
 				CurrMode = mode.TERMINATED;
 				return;
 			}
-			if (elapsed < stepMS * 1000000) {
-				try {
-					Thread.currentThread();
-					Thread.sleep(stepMS - (elapsed) / 1000000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			accumulator -= timeScale / simulationRate * 1000000000;
+//			System.out.println(accumulator);
+			if(accumulator > 0) {
+				simulationRate/=1.1;
+			}else {
+				simulationRate*=1.1;
 			}
+			simulationRate = (int)NumericUtilities.clamp(simulationRate, MIN_SIM_RATE, MAX_SIM_RATE);
+//			if (elapsed < stepMS * 1000000000) {
+//				try {
+//					Thread.currentThread();
+//					Thread.sleep(stepMS - (elapsed) / 1000000);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//			}
 		}
 	}
 
